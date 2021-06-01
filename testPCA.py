@@ -14,9 +14,9 @@ A1 = 1.0
 X1 = 250
 W1 = 50
 
-A2 = 0.5
+A2 = 1.0
 X2 = 600
-W2 = 40
+W2 = 50
 
 class TestPCA(unittest.TestCase):
     X = None
@@ -108,8 +108,9 @@ class TestPCA(unittest.TestCase):
         pca = PCA()
         self.assertIsNotNone(pca)
 
+    @unittest.skip("Not matplotlib")
     def testFitPCA(self):
-
+        # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
         dataset = self.createDataset(N=N)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, 0.1)
@@ -141,6 +142,106 @@ class TestPCA(unittest.TestCase):
         ax.set_title("Keeping only 10 components")
         plt.show()
 
+    def createComponent(self, x, maxPeaks, maxAmplitude, maxWidth, minWidth):        
+        N = random.randint(1, maxPeaks)
+        
+        intensity = np.zeros(len(x))
+        for i in range(N):
+            amplitude = random.uniform(0, maxAmplitude)
+            width = random.uniform(minWidth, maxWidth)
+            center = random.choice(x)
+            intensity += amplitude*np.exp(-(x-center)**2/width**2)
+
+        return intensity
+
+    def testCreateSpectrum(self):
+
+        component = self.createComponent(self.X, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        self.assertIsNotNone(component)
+        self.assertTrue(len(component) == len(self.X))
+        # plt.plot(self.X, component)
+        # plt.show()
+
+
+    def createBasisSet(self, x, N, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5):
+        basisSet = []
+        for i in range(N):
+            component = self.createComponent(x, maxPeaks, maxAmplitude, maxWidth, minWidth)
+            self.assertIsNotNone(component)
+            self.assertTrue(len(component) == len(x))
+            basisSet.append(component)
+
+        return np.array(basisSet)
+
+    def testCreateBaseComponents(self, ):
+        basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        self.assertTrue(basisSet.shape == (5, len(self.X)))
+
+    def createDatasetFromBasisSet(self, N, basisSet):
+        # shape = (# base, #spectral_pts)
+        
+        m, nPts = basisSet.shape
+        dataset = []
+        for i in range(N):
+            vector = np.zeros(nPts)
+            for j in range(m):
+                cj = random.random()
+                vector += cj*basisSet[j]
+            dataset.append(vector)
+
+        return np.stack(dataset)
+
+    def testDatasetCreationFromBasisSet(self):
+        N = 100
+        basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        dataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+
+        self.assertTrue(len(dataset) == N)
+        for v in dataset:
+            self.assertTrue(len(v) == len(self.X))
+
+    def testFitPCAWithMoreComplexBasisSet(self):
+        # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+        N = 100
+        basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+
+        pca = PCA(n_components=2)
+        pca.fit(noisyDataset)
+        print(pca.singular_values_)
+        print(pca.explained_variance_ratio_)
+        fig, ax = plt.subplots()
+        plt.plot(pca.components_.transpose())
+        ax.set_title("Keeping only 2 components")
+        plt.show()
+
+        pca = PCA(n_components=5)
+        pca.fit(noisyDataset)
+        print(pca.singular_values_)
+        print(pca.explained_variance_ratio_)
+        fig, ax = plt.subplots()
+        plt.plot(pca.components_.transpose())
+        ax.set_title("Keeping only 5 components")
+        plt.show()
+
+        pca = PCA(n_components=10)
+        pca.fit(noisyDataset)
+        print(pca.singular_values_)
+        print(pca.explained_variance_ratio_)
+        fig, ax = plt.subplots()
+        plt.plot(pca.components_.transpose())
+        ax.set_title("Keeping only 10 components")
+        plt.show()
+
+
+    def testExtractCoefficients(self):
+        # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+        N = 100
+        basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
 
 if __name__ == '__main__':
     unittest.main()
