@@ -200,7 +200,7 @@ class TestPCA(unittest.TestCase):
         self.assertTrue(len(dataset) == N)
         for v in dataset:
             self.assertTrue(len(v) == len(self.X))
-
+    @unittest.skip("Not mplots")
     def testFitPCAWithMoreComplexBasisSet(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -210,8 +210,6 @@ class TestPCA(unittest.TestCase):
 
         pca = PCA(n_components=2)
         pca.fit(noisyDataset)
-        print(pca.singular_values_)
-        print(pca.explained_variance_ratio_)
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 2 components")
@@ -219,8 +217,6 @@ class TestPCA(unittest.TestCase):
 
         pca = PCA(n_components=5)
         pca.fit(noisyDataset)
-        print(pca.singular_values_)
-        print(pca.explained_variance_ratio_)
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 5 components")
@@ -228,20 +224,36 @@ class TestPCA(unittest.TestCase):
 
         pca = PCA(n_components=10)
         pca.fit(noisyDataset)
-        print(pca.singular_values_)
-        print(pca.explained_variance_ratio_)
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 10 components")
         plt.show()
 
-
-    def testExtractCoefficients(self):
+    def testExpressOriginalBasisVectorInNewObtainedEigenvectorBase(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
-        basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        basisDimension = 5
+        basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
         dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
-        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+        noisyDataset = dataset #self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+        
+        # We keep all components to get a "perfect fit"
+        componentsToKeep = 100
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(noisyDataset)
+
+        # We get the coefficients for our original basis set
+        basisCoefficients = pca.transform(basisSet)
+        self.assertTrue(basisCoefficients.shape == (basisDimension, componentsToKeep))
+
+        recoveredBasisSet = basisCoefficients@pca.components_
+        fig, (ax1, ax2) = plt.subplots(2)        
+        ax1.plot(recoveredBasisSet.transpose())
+        ax1.set_title("Recovered basis from projection")
+        ax2.plot(basisSet.transpose())
+        ax2.set_title("Original basis, should be the same")
+        plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()
