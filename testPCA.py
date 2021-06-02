@@ -383,7 +383,8 @@ class TestPCA(unittest.TestCase):
         basisSet, dataSet = self.createNoisyDataset()
         self.assertIsNotNone(basisSet)
         self.assertIsNotNone(dataSet)
-        # I will test more here later...: 
+        # I will test more here later...: I want to use the pca.coefficients and transform them into 
+        # the real physical basis that I know has a physical meaning.  I need to perform a base change.
 
 if __name__ == '__main__':
     unittest.main()
