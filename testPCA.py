@@ -18,6 +18,8 @@ A2 = 1.0
 X2 = 600
 W2 = 50
 
+skipPlots = False
+
 class TestPCA(unittest.TestCase):
     X = None
     C1 = None
@@ -203,7 +205,7 @@ class TestPCA(unittest.TestCase):
         for v in dataset:
             self.assertTrue(len(v) == len(self.X))
 
-    @unittest.skip("Skip plots")
+    @unittest.skipIf(skipPlots, "Skip plots")
     def testFitPCAWithMoreComplexBasisSet(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -232,7 +234,7 @@ class TestPCA(unittest.TestCase):
         ax.set_title("Keeping only 10 components")
         plt.show()
 
-    @unittest.skip("Skip plots")
+    @unittest.skipIf(skipPlots, "Skip plots")
     def testExpressOriginalBasisVectorInNewObtainedEigenvectorBase(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -265,7 +267,7 @@ class TestPCA(unittest.TestCase):
         ax3.set_title("Residual error")
         plt.show()
 
-    @unittest.skip("Skip plots")
+    @unittest.skipIf(skipPlots, "Skip plots")
     def testErrorAsAFunctionOfComponentsKept(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -331,7 +333,11 @@ class TestPCA(unittest.TestCase):
         ax2.set_title("Original basis, should be the same")
         ax3.plot(errorFromInvTransform.transpose())
         ax3.set_title("Residual error")
-        #plt.show() # uncomment to see graph
+        plt.show()
+
+    def testBaseChange(self):
+        # All I have left to do is to perform a base change from pca.components to my basisSet
+        pass
 
 if __name__ == '__main__':
     unittest.main()
