@@ -235,23 +235,27 @@ class TestPCA(unittest.TestCase):
         basisDimension = 5
         basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
         dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
-        noisyDataset = dataset #self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
         
         # We keep all components to get a "perfect fit"
-        componentsToKeep = 100
+        componentsToKeep = 6
         pca = PCA(n_components=componentsToKeep)
         pca.fit(noisyDataset)
 
         # We get the coefficients for our original basis set
         basisCoefficients = pca.transform(basisSet)
         self.assertTrue(basisCoefficients.shape == (basisDimension, componentsToKeep))
-
-        recoveredBasisSet = basisCoefficients@pca.components_
-        fig, (ax1, ax2) = plt.subplots(2)        
+        recoveredBasisSet = pca.inverse_transform(basisCoefficients)
+        recoveredBasisSetWrong = basisCoefficients@pca.components_
+        basisCoefficientsWrong = pca.transform(recoveredBasisSetWrong)
+        print(basisCoefficientsWrong/basisCoefficients)
+        fig, (ax1, ax2, ax3) = plt.subplots(3)        
         ax1.plot(recoveredBasisSet.transpose())
         ax1.set_title("Recovered basis from projection")
         ax2.plot(basisSet.transpose())
         ax2.set_title("Original basis, should be the same")
+        ax3.plot(pca.components_.transpose())
+        ax3.set_title("Principal components")
         plt.show()
 
 
