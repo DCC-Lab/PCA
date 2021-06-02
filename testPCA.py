@@ -26,15 +26,19 @@ class TestPCA(unittest.TestCase):
     C2 = None
 
     def testPCAIsImportingProperly(self):
+        # Is my module installed properly at least?
         pca = PCA()
         self.assertIsNotNone(pca)
 
     def testSimulatedXComponent(self):
+        # I will need spectra, so let me get started to make sure I can at least do that.
+        # Start with a "wavelength" range.
         X  = np.linspace(0,1000,1001)
         self.assertIsNotNone(X)
         self.assertTrue(len(X) != 0)
 
     def testSimulatedC1Component(self):
+        # Create a fake C1 spectrum
         X  = np.linspace(0,1000,1001)
         C1 = A1*np.exp(-(X-X1)**2/W1)
         self.assertIsNotNone(C1)
@@ -42,28 +46,36 @@ class TestPCA(unittest.TestCase):
         self.assertTrue(np.mean(C1) > 0)
 
     def testSimulatedC2Component(self):
+        # Create another C2 spectrum
         X  = np.linspace(0,1000,1001)
         C2 = A2*np.exp(-(X-X2)**2/W2)
         self.assertIsNotNone(C2)
         self.assertTrue(np.mean(C2) > 0)
 
     def setUp(self):
-        # Once tested, we set them up every time in setUp
+        # The setUp() function is called before every test, so let me just call this and create
+        # my spectra all the time because I know they work (I just tested them).
+
+        # Once tested, we set them up every time in setUp it will be simpler.
         self.X  = np.linspace(0,1000,1001)
         self.C1 = A1*np.exp(-(self.X-X1)**2/W1)
         self.C2 = A2*np.exp(-(self.X-X2)**2/W2)
 
     def testSimulatedC1Max(self):
+        # Test that the values are fine.
         index = np.argmax(self.C1)
         self.assertEqual(self.X[index], X1)
         self.assertEqual(self.C1[index], A1)
 
     def testSimulatedC2Max(self):
+        # Test that the values are fine.
         index = np.argmax(self.C2)
         self.assertEqual(self.X[index], X2)
         self.assertEqual(self.C2[index], A2)
 
     def createDataset(self, N):
+        # Ok, I can create a basis of 2 spectra, let me "mix" them in a solution
+        # and get the "combined" spectrum as if it was an experiment.
         # Create N random combinations (0..1) of C1 and C2
         dataset = []
         for i in range(N):
@@ -75,6 +87,7 @@ class TestPCA(unittest.TestCase):
         return np.stack(dataset)
 
     def testDatasetCreation(self):
+        # Test my creation function above.
         N = 100
         dataset = self.createDataset(N=N)
         self.assertTrue(len(dataset) == N)
@@ -82,6 +95,7 @@ class TestPCA(unittest.TestCase):
             self.assertTrue(len(v) == len(self.X))
 
     def newDatasetWithAdditiveNoise(self, dataset, fraction):
+        # Ok, I have spectra, I will add noise to make it real
         noisyDataset = []
         for v in dataset:
             noisyVector = []
@@ -93,6 +107,7 @@ class TestPCA(unittest.TestCase):
         return noisyDataset
 
     def testNoisyDatasetCreation(self):
+        # Let me test my noisy spectra
         N = 100
         dataset = self.createDataset(N=N)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, 0.05)
@@ -105,13 +120,16 @@ class TestPCA(unittest.TestCase):
             for j in range(len(v)):
                 self.assertTrue(v[j] != vn[j])
 
-    # I am now ready to test PCA with data
     def testPCAIsImportingProperly(self):
+        # I am now ready to test PCA with data. Is it still well-installed?
+        # (ah ah)
         pca = PCA()
         self.assertIsNotNone(pca)
 
     @unittest.skipIf(skipPlots, "Skip plots")
     def testFitPCA(self):
+        # I will try to perform PCA on my "spectra" that I simulated.  I expect to recover the concentrations
+        # that I used when I created them
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
         dataset = self.createDataset(N=N)
@@ -148,6 +166,7 @@ class TestPCA(unittest.TestCase):
         plt.show()
 
     def createComponent(self, x, maxPeaks, maxAmplitude, maxWidth, minWidth):        
+        # Ok, things are not as expected.  I will create random spectra with a few peaks and varying widths
         N = random.randint(1, maxPeaks)
         
         intensity = np.zeros(len(x))
@@ -160,11 +179,13 @@ class TestPCA(unittest.TestCase):
         return intensity
 
     def testCreateSpectrum(self):
+        # Is the function I just wrote working?
         component = self.createComponent(self.X, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
         self.assertIsNotNone(component)
         self.assertTrue(len(component) == len(self.X))
 
     def createBasisSet(self, x, N, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5):
+        # I will create a basis set of a few random "spectra" that I will use as a basis set to create a data set
         basisSet = []
         for i in range(N):
             component = self.createComponent(x, maxPeaks, maxAmplitude, maxWidth, minWidth)
@@ -175,10 +196,15 @@ class TestPCA(unittest.TestCase):
         return np.array(basisSet)
 
     def testCreateBaseComponents(self, ):
+        # Is the function I just wrote working?
         basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
         self.assertTrue(basisSet.shape == (5, len(self.X)))
 
     def createDatasetFromBasisSet(self, N, basisSet):
+        # Alright, I have a basis set but now I want a data set
+
+        # I am a bit confused with the numpy dimensions (i.e. the shape) and indices.  Which way do they go?
+        # I think it's this:
         # shape = (# base, #spectral_pts)
         
         m, nPts = basisSet.shape
@@ -193,6 +219,7 @@ class TestPCA(unittest.TestCase):
         return np.stack(dataset)
 
     def testDatasetCreationFromBasisSet(self):
+        # Is this createDatasetFromBasisSet working as expected?
         N = 100
         basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
         dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
@@ -204,6 +231,8 @@ class TestPCA(unittest.TestCase):
 
     @unittest.skipIf(skipPlots, "Skip plots")
     def testFitPCAWithMoreComplexBasisSet(self):
+        # Alright, now we are really entering the real stuff:
+        # I should be able to use PCA and get "eigenvectors" that should resemble my basis set
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
         basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
@@ -215,24 +244,27 @@ class TestPCA(unittest.TestCase):
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 2 components")
-        plt.show()
+        plt.show() # This looks nothing like my basis set: some values are negative! I don't understand
 
         pca = PCA(n_components=5)
         pca.fit(noisyDataset)
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 5 components")
-        plt.show()
+        plt.show() # This looks like crap too. I don't understand
 
         pca = PCA(n_components=10)
         pca.fit(noisyDataset)
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 10 components")
-        plt.show()
+        plt.show() # This looks like total crap. What is going on?
 
     @unittest.skipIf(skipPlots, "Skip plots")
     def testExpressOriginalBasisVectorInNewObtainedEigenvectorBase(self):
+        # So I know that the components returned by PCA form a complete basis for my data set.
+        # But I also know that my actual basisSet is another valid basis.  I should be able to express
+        # my basisSet with the components basis set.
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
         basisDimension = 5
@@ -266,6 +298,8 @@ class TestPCA(unittest.TestCase):
 
     @unittest.skipIf(skipPlots, "Skip plots")
     def testErrorAsAFunctionOfComponentsKept(self):
+        # Now I will actually test the error between the computed recovered basisSet and the real basisSet
+        # as a function of the number of components I keep in my eigen basis.
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
         basisDimension = 5
@@ -296,7 +330,10 @@ class TestPCA(unittest.TestCase):
 
     @unittest.skipIf(skipPlots, "Skip plots")
     def testUnderstandingPCAInverseTransform(self):
-        # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+        # I thought I understood inverse_transform() but I tried to do it manually and I failed:
+        # I thought I could simply do basisCoefficients@pca.components_ to recover my basis set but hat 
+        # does not work. I figured it out though. See below.
+
         N = 100
         basisDimension = 5
         basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
@@ -334,6 +371,7 @@ class TestPCA(unittest.TestCase):
         plt.show()
 
     def createNoisyDataset(self, nSamples=100, basisDimension=5, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5, noiseFraction=0.1 ):
+        # I am sick of creating a noisy dataset every time. Here is a useful function.
         basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=maxPeaks, 
                                        maxAmplitude=maxAmplitude, maxWidth=maxWidth, minWidth=minWidth)
         dataset = self.createDatasetFromBasisSet(N=nSamples, basisSet=basisSet)
@@ -345,6 +383,7 @@ class TestPCA(unittest.TestCase):
         basisSet, dataSet = self.createNoisyDataset()
         self.assertIsNotNone(basisSet)
         self.assertIsNotNone(dataSet)
+        # I will test more here later...: 
 
 if __name__ == '__main__':
     unittest.main()
