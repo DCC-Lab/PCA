@@ -311,12 +311,27 @@ class TestPCA(unittest.TestCase):
         # We get the coefficients for our original basis set
         basisCoefficients = pca.transform(basisSet)
         self.assertTrue(basisCoefficients.shape == (basisDimension, componentsToKeep))
+
         # I don't understand why pca.inverse_transform is not the same as basisCoefficients@pca.components_
         recoveredBasisSet = pca.inverse_transform(basisCoefficients)
 
-        recoveredBasisSetWrong = basisCoefficients@pca.components_
-        basisCoefficientsWrong = pca.transform(recoveredBasisSetWrong)
+        # I looked at the code for inverse_transform() and I think I figured it out:
+        # https://github.com/scikit-learn/scikit-learn/blob/15a949460/sklearn/decomposition/_base.py#L97
+        # The inverse_transform() method substracts the mean of all vectors from the vectors and it must
+        # be added back when we perform the inverse transform.
+        recoveredBasisSetDoneManually = basisCoefficients@pca.components_+pca.mean_
 
+        errorFromInvTransform = recoveredBasisSet-recoveredBasisSetDoneManually
+        self.assertTrue(errorFromInvTransform.all() == 0)
+
+        fig, (ax1, ax2, ax3) = plt.subplots(3,figsize=(10,10))        
+        ax1.plot(recoveredBasisSetDoneManually.transpose())
+        ax1.set_title("Recovered basis from projection")
+        ax2.plot(basisSet.transpose())
+        ax2.set_title("Original basis, should be the same")
+        ax3.plot(errorFromInvTransform.transpose())
+        ax3.set_title("Residual error")
+        #plt.show() # uncomment to see graph
 
 if __name__ == '__main__':
     unittest.main()
