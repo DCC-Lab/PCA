@@ -20,6 +20,27 @@ W2 = 50
 skipPlots = False # It is annoying to have to press 'q' to dismiss the plots
                   # if you set this to false, then any test with plots will not run.
 
+"""
+I want to understand PCA for spectral analysis. I expect to be able to use
+PCA (principal components analysis) to find a "spectral basis" that I can use
+to reduce the dimensionality : if, for instance, my spectrum is a combination
+of 5 analytes with different concentrations, I expect that PCA will return 5
+spectral components that explain most of the variance in my data. These
+components will probably not be the spectra of my analytes: they may have 
+positive or negative values which makes no physical sense but makes perfect 
+mathematical sense.  Therefore I will have to find a way to transform the 
+coefficients I get from the PCA module into actual concentrations of analytes
+by expressing my analyte spectra in the PCA components found.  Then, I can read
+off the concentrations directly.
+
+So that is my goal, but I have never done that ever, and I don't know sklearn.
+I will learn sklearn with unittests to validate that I understand. It should
+be simple: sklearn.decomposition.pca does all the work. But how do *I* use
+it? I will make up "fake" analytes and then build "experimental datasets" with 
+noise and see how PCA handles them.
+"""
+
+
 class TestPCA(unittest.TestCase):
     X = None
     C1 = None
