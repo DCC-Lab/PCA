@@ -108,7 +108,6 @@ class TestPCA(unittest.TestCase):
         pca = PCA()
         self.assertIsNotNone(pca)
 
-    @unittest.skip("Not matplotlib")
     def testFitPCA(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -117,30 +116,33 @@ class TestPCA(unittest.TestCase):
 
         pca = PCA(n_components=2)
         pca.fit(noisyDataset)
-        print(pca.singular_values_)
-        print(pca.explained_variance_ratio_)
+        self.assertEqual(pca.n_features_, len(self.X))
+        self.assertEqual(pca.n_samples_, N)
+
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 2 components")
-        plt.show()
+        #plt.show()
 
         pca = PCA(n_components=5)
         pca.fit(noisyDataset)
-        print(pca.singular_values_)
-        print(pca.explained_variance_ratio_)
+        self.assertEqual(pca.n_features_, len(self.X))
+        self.assertEqual(pca.n_samples_, N)
+
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 5 components")
-        plt.show()
+        #plt.show()
 
         pca = PCA(n_components=10)
         pca.fit(noisyDataset)
-        print(pca.singular_values_)
-        print(pca.explained_variance_ratio_)
+        self.assertEqual(pca.n_features_, len(self.X))
+        self.assertEqual(pca.n_samples_, N)
+
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 10 components")
-        plt.show()
+        #plt.show()
 
     def createComponent(self, x, maxPeaks, maxAmplitude, maxWidth, minWidth):        
         N = random.randint(1, maxPeaks)
@@ -200,7 +202,8 @@ class TestPCA(unittest.TestCase):
         self.assertTrue(len(dataset) == N)
         for v in dataset:
             self.assertTrue(len(v) == len(self.X))
-    @unittest.skip("Not mplots")
+
+    @unittest.skip("Skip plots")
     def testFitPCAWithMoreComplexBasisSet(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -229,6 +232,7 @@ class TestPCA(unittest.TestCase):
         ax.set_title("Keeping only 10 components")
         plt.show()
 
+    @unittest.skip("Skip plots")
     def testExpressOriginalBasisVectorInNewObtainedEigenvectorBase(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -237,8 +241,8 @@ class TestPCA(unittest.TestCase):
         dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
         
-        # We keep all components to get a "perfect fit"
-        componentsToKeep = 6
+        # We keep most components to get a "perfect fit"
+        componentsToKeep = 20
         pca = PCA(n_components=componentsToKeep)
         pca.fit(noisyDataset)
 
@@ -246,17 +250,72 @@ class TestPCA(unittest.TestCase):
         basisCoefficients = pca.transform(basisSet)
         self.assertTrue(basisCoefficients.shape == (basisDimension, componentsToKeep))
         recoveredBasisSet = pca.inverse_transform(basisCoefficients)
+
+        error = basisSet-recoveredBasisSet
+
         recoveredBasisSetWrong = basisCoefficients@pca.components_
         basisCoefficientsWrong = pca.transform(recoveredBasisSetWrong)
-        print(basisCoefficientsWrong/basisCoefficients)
-        fig, (ax1, ax2, ax3) = plt.subplots(3)        
+
+        fig, (ax1, ax2, ax3) = plt.subplots(3,figsize=(10,10))        
         ax1.plot(recoveredBasisSet.transpose())
         ax1.set_title("Recovered basis from projection")
         ax2.plot(basisSet.transpose())
         ax2.set_title("Original basis, should be the same")
-        ax3.plot(pca.components_.transpose())
-        ax3.set_title("Principal components")
+        ax3.plot(error.transpose())
+        ax3.set_title("Residual error")
         plt.show()
+
+    @unittest.skip("Skip plots")
+    def testErrorAsAFunctionOfComponentsKept(self):
+        # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+        N = 100
+        basisDimension = 5
+        basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+        
+        errors = []
+        componentsRange = range(101)
+        for componentsToKeep in componentsRange:
+            pca = PCA(n_components=componentsToKeep)
+            pca.fit(noisyDataset)
+
+            # We get the coefficients for our original basis set
+            basisCoefficients = pca.transform(basisSet)
+            self.assertTrue(basisCoefficients.shape == (basisDimension, componentsToKeep))
+            recoveredBasisSet = pca.inverse_transform(basisCoefficients)
+
+            error = basisSet-recoveredBasisSet
+            errors.append(sum(sum(abs(error))))
+
+        fig, ax = plt.subplots(1)
+        ax.plot(componentsRange, errors,'o')
+        ax.set_yscale("log")
+        ax.set_title("Error with {0} original basis vectors".format(basisDimension))
+        ax.set_xlabel("Number of components kept")
+        plt.show()
+
+    def testUnderstandingPCAInverseTransform(self):
+        # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+        N = 100
+        basisDimension = 5
+        basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
+        
+        # We keep most components to get a "perfect fit"
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(noisyDataset)
+
+        # We get the coefficients for our original basis set
+        basisCoefficients = pca.transform(basisSet)
+        self.assertTrue(basisCoefficients.shape == (basisDimension, componentsToKeep))
+        # I don't understand why pca.inverse_transform is not the same as basisCoefficients@pca.components_
+        recoveredBasisSet = pca.inverse_transform(basisCoefficients)
+
+        recoveredBasisSetWrong = basisCoefficients@pca.components_
+        basisCoefficientsWrong = pca.transform(recoveredBasisSetWrong)
 
 
 if __name__ == '__main__':
