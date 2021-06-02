@@ -110,6 +110,7 @@ class TestPCA(unittest.TestCase):
         pca = PCA()
         self.assertIsNotNone(pca)
 
+    @unittest.skipIf(skipPlots, "Skip plots")
     def testFitPCA(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -124,7 +125,7 @@ class TestPCA(unittest.TestCase):
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 2 components")
-        #plt.show()
+        plt.show()
 
         pca = PCA(n_components=5)
         pca.fit(noisyDataset)
@@ -134,7 +135,7 @@ class TestPCA(unittest.TestCase):
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 5 components")
-        #plt.show()
+        plt.show()
 
         pca = PCA(n_components=10)
         pca.fit(noisyDataset)
@@ -144,7 +145,7 @@ class TestPCA(unittest.TestCase):
         fig, ax = plt.subplots()
         plt.plot(pca.components_.transpose())
         ax.set_title("Keeping only 10 components")
-        #plt.show()
+        plt.show()
 
     def createComponent(self, x, maxPeaks, maxAmplitude, maxWidth, minWidth):        
         N = random.randint(1, maxPeaks)
@@ -159,13 +160,9 @@ class TestPCA(unittest.TestCase):
         return intensity
 
     def testCreateSpectrum(self):
-
         component = self.createComponent(self.X, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
         self.assertIsNotNone(component)
         self.assertTrue(len(component) == len(self.X))
-        # plt.plot(self.X, component)
-        # plt.show()
-
 
     def createBasisSet(self, x, N, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5):
         basisSet = []
@@ -297,6 +294,7 @@ class TestPCA(unittest.TestCase):
         ax.set_xlabel("Number of components kept")
         plt.show()
 
+    @unittest.skipIf(skipPlots, "Skip plots")
     def testUnderstandingPCAInverseTransform(self):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
@@ -335,9 +333,18 @@ class TestPCA(unittest.TestCase):
         ax3.set_title("Residual error")
         plt.show()
 
+    def createNoisyDataset(self, nSamples=100, basisDimension=5, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5, noiseFraction=0.1 ):
+        basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=maxPeaks, 
+                                       maxAmplitude=maxAmplitude, maxWidth=maxWidth, minWidth=minWidth)
+        dataset = self.createDatasetFromBasisSet(N=nSamples, basisSet=basisSet)
+        noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=noiseFraction)
+        return basisSet, noisyDataset
+
     def testBaseChange(self):
         # All I have left to do is to perform a base change from pca.components to my basisSet
-        pass
+        basisSet, dataSet = self.createNoisyDataset()
+        self.assertIsNotNone(basisSet)
+        self.assertIsNotNone(dataSet)
 
 if __name__ == '__main__':
     unittest.main()
