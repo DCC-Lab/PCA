@@ -8,17 +8,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-inf = float("+inf")
+# I will use these later, it is easier if I put them here:
+A1 = 1.0 # amplitude of peak1
+X1 = 250 # center
+W1 = 50  # gaussian width
 
-A1 = 1.0
-X1 = 250
-W1 = 50
-
-A2 = 1.0
+A2 = 1.0 # same for peak 2
 X2 = 600
 W2 = 50
 
-skipPlots = False
+skipPlots = False # It is annoying to have to press 'q' to dismiss the plots
+                  # if you set this to false, then any test with plots will not run.
 
 class TestPCA(unittest.TestCase):
     X = None
