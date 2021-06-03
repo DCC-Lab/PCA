@@ -37,7 +37,8 @@ So that is my goal, but I have never done that ever, and I don't know sklearn.
 I will learn sklearn with unittests to validate that I understand. It should
 be simple: sklearn.decomposition.pca does all the work. But how do *I* use
 it? I will make up "fake" analytes and then build "experimental datasets" with 
-noise and see how PCA handles them.
+noise and see how PCA handles them: I want to recover the concentrations of these
+analytes.
 """
 
 
