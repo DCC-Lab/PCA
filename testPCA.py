@@ -17,7 +17,7 @@ A2 = 1.0 # same for peak 2
 X2 = 600
 W2 = 50
 
-skipPlots = False # It is annoying to have to press 'q' to dismiss the plots
+skipPlots = True # It is annoying to have to press 'q' to dismiss the plots
                   # if you set this to false, then any test with plots will not run.
 
 """
@@ -58,9 +58,12 @@ class TestPCA(unittest.TestCase):
         X  = np.linspace(0,1000,1001)
         self.assertIsNotNone(X)
         self.assertTrue(len(X) != 0)
+        # I want to have 0,1,2....
+        self.assertEqual(X[0], 0)
+        self.assertEqual(X[1], 1)
 
     def testSimulatedC1Component(self):
-        # Create a fake C1 spectrum
+        # Create a fake C1 spectrum, my "first analyte"
         X  = np.linspace(0,1000,1001)
         C1 = A1*np.exp(-(X-X1)**2/W1)
         self.assertIsNotNone(C1)
@@ -68,7 +71,7 @@ class TestPCA(unittest.TestCase):
         self.assertTrue(np.mean(C1) > 0)
 
     def testSimulatedC2Component(self):
-        # Create another C2 spectrum
+        # Create another C2 spectrum, my second analyte
         X  = np.linspace(0,1000,1001)
         C2 = A2*np.exp(-(X-X2)**2/W2)
         self.assertIsNotNone(C2)
@@ -84,13 +87,13 @@ class TestPCA(unittest.TestCase):
         self.C2 = A2*np.exp(-(self.X-X2)**2/W2)
 
     def testSimulatedC1Max(self):
-        # Test that the values are fine.
+        # Test that the values are fine: centered on X1, amplitude A1
         index = np.argmax(self.C1)
         self.assertEqual(self.X[index], X1)
         self.assertEqual(self.C1[index], A1)
 
     def testSimulatedC2Max(self):
-        # Test that the values are fine.
+        # Test that the values are fine: centered on X2, amplitude A2
         index = np.argmax(self.C2)
         self.assertEqual(self.X[index], X2)
         self.assertEqual(self.C2[index], A2)
@@ -103,8 +106,8 @@ class TestPCA(unittest.TestCase):
         for i in range(N):
             a1 = random.random()
             a2 = random.random()
-            vector = a1*self.C1 + a2*self.C2
-            dataset.append(vector)
+            spectrum = a1*self.C1 + a2*self.C2
+            dataset.append(spectrum)
 
         return np.stack(dataset)
 
@@ -117,7 +120,7 @@ class TestPCA(unittest.TestCase):
             self.assertTrue(len(v) == len(self.X))
 
     def newDatasetWithAdditiveNoise(self, dataset, fraction):
-        # Ok, I have spectra, I will add noise to make it real
+        # Ok, I have several spectra in a dataset, I will add noise to make it real
         noisyDataset = []
         for v in dataset:
             noisyVector = []
@@ -392,21 +395,173 @@ class TestPCA(unittest.TestCase):
         ax3.set_title("Residual error")
         plt.show()
 
-    def createNoisyDataset(self, nSamples=100, basisDimension=5, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5, noiseFraction=0.1 ):
+    def createNormalizedBasisSet(self, x, N, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5):
+        # I think it would be useful to have a normalized basis set.  Let me see what I get.
+
+        basisSet = []
+        for i in range(N):
+            component = self.createComponent(x, maxPeaks, maxAmplitude, maxWidth, minWidth)            
+            self.assertIsNotNone(component)
+            self.assertTrue(len(component) == len(x))
+            magnitudeSquared = np.dot(component, component)
+            self.assertTrue(magnitudeSquared>0)
+            component /= np.sqrt(magnitudeSquared)
+            basisSet.append(component)
+
+        return np.array(basisSet)
+
+    def testNormalizationOfBasisSet(self):
+        component = self.createComponent(self.X, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=10)
+
+        magnitudeSquared = np.dot(component.T, component)
+        component /= np.sqrt(magnitudeSquared)
+        magnitudeSquared = np.sqrt(np.dot(component.T, component))
+        self.assertAlmostEqual(magnitudeSquared, 1.0)
+
+    def testNonOrthogonalityOfBasisSet(self):
+        # Components are certainly not orthogonal
+        component1 = self.createComponent(self.X, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=10)
+        magnitudeSquared = np.dot(component1.T, component1)
+        component1 /= np.sqrt(magnitudeSquared)
+
+        component2 = self.createComponent(self.X, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=10)
+        magnitudeSquared = np.dot(component2.T, component2)
+        component2 /= np.sqrt(magnitudeSquared)
+
+        magnitudeSquared = np.dot(component1.T, component2)
+        self.assertTrue(magnitudeSquared > 0)
+
+    def createNormalizedNoisyDataset(self, nSamples=100, basisDimension=5, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5, noiseFraction=0.1 ):
         # I am sick of creating a noisy dataset every time. Here is a useful function.
-        basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=maxPeaks, 
+        basisSet = self.createNormalizedBasisSet(self.X, N=basisDimension, maxPeaks=maxPeaks, 
                                        maxAmplitude=maxAmplitude, maxWidth=maxWidth, minWidth=minWidth)
         dataset = self.createDatasetFromBasisSet(N=nSamples, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=noiseFraction)
         return basisSet, noisyDataset
 
+    def testAgainWithNormalizedBasisSetPCAreNormalized(self):
+        basisSet, noisyDataset = self.createNormalizedNoisyDataset()
+
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(noisyDataset)
+        for pc in pca.components_:
+            magnitude = np.sqrt(np.dot(pc.T,pc))
+            self.assertAlmostEqual(magnitude, 1.0)
+
+    def testValidateProjectionsBasisSetOntoPrincipalComponents(self):
+        basisSet, noisyDataset = self.createNormalizedNoisyDataset()
+
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(noisyDataset)
+
+        for basis in basisSet:
+            magnitude = np.sqrt(np.dot(basis,basis))
+            self.assertTrue(magnitude > 0)
+            for pc in pca.components_:
+                scalarProduct = np.dot(pc,basis)
+                self.assertTrue(scalarProduct != 0)
+
+    @unittest.skipIf(skipPlots, "Skip plots")
     def testBaseChange(self):
         # All I have left to do is to perform a base change from pca.components to my basisSet
-        basisSet, dataSet = self.createNoisyDataset()
+        # I am following Greenberg 10.7 but my basis set is not Orthonormal. Careful.
+        basisSet, dataSet = self.createNormalizedNoisyDataset()
         self.assertIsNotNone(basisSet)
         self.assertIsNotNone(dataSet)
-        # I will test more here later...: I want to use the pca.coefficients and transform them into 
-        # the real physical basis that I know has a physical meaning.  I need to perform a base change.
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(dataSet)
+
+        baseChangeMatrix = np.ndarray(shape=(componentsToKeep,5))
+        for i, toBaseVector in enumerate(basisSet):
+            for j, fromBaseVector in enumerate(pca.components_):
+                qij = np.dot(toBaseVector,fromBaseVector)
+                self.assertTrue(qij != 0)
+                baseChangeMatrix[i,j] = qij
+
+        self.assertTrue(baseChangeMatrix.shape == (5,5))
+        PC1Coefficients = np.zeros(shape=(5,1))
+        PC1Coefficients[0] = 1
+
+        physicalComponents = baseChangeMatrix@PC1Coefficients
+        pc1InOriginalBasis = basisSet.T@physicalComponents
+        pc1InOriginalBasis /= np.dot(pc1InOriginalBasis.T,pc1InOriginalBasis)
+
+        plt.plot(pca.components_[0],label='Principal Component 1')
+        plt.plot(basisSet[0]*physicalComponents[0],label='{0} x base1'.format(physicalComponents[0]))
+        plt.plot(basisSet[1]*physicalComponents[1],label='{0} x base2'.format(physicalComponents[1]))
+        plt.plot(basisSet[2]*physicalComponents[2],label='{0} x base3'.format(physicalComponents[2]))
+        plt.plot(basisSet[3]*physicalComponents[3],label='{0} x base4'.format(physicalComponents[3]))
+        plt.plot(basisSet[4]*physicalComponents[4],label='{0} x base5'.format(physicalComponents[4]))
+
+        plt.legend()
+        plt.show()
+
+    def testMoreBaseChangeTesting(self):
+        basisSet, dataSet = self.createNormalizedNoisyDataset()
+        self.assertIsNotNone(basisSet)
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(dataSet)
+
+        baseChangeMatrix = np.ndarray(shape=(5,5))
+        for i, toBaseVector in enumerate(basisSet):
+            for j, fromBaseVector in enumerate(basisSet):
+                qij = np.dot(toBaseVector.T,fromBaseVector)
+                baseChangeMatrix[i,j] = qij
+        print(baseChangeMatrix)
+
+    def testShowTranslatedPCs(self):
+        basisSet, dataSet = self.createNormalizedNoisyDataset()
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(dataSet)
+
+        pcs = pca.components_+pca.mean_
+        plt.plot(pcs.T,label='Translated PCs')
+        plt.plot(pca.mean_,label='Mean')
+        plt.legend()
+        plt.show()
+
+    def testRecoverConcentrationWithBaseChange(self):
+        basisSet, dataSet = self.createNormalizedNoisyDataset()
+        self.assertIsNotNone(basisSet)
+        self.assertIsNotNone(dataSet)
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(dataSet)
+
+        baseChangeMatrix = np.ndarray(shape=(componentsToKeep,5))
+        for i, toBaseVector in enumerate(basisSet):
+            for j, fromBaseVector in enumerate(pca.components_+pca.mean_):
+                # fromBaseVector /= np.sqrt(np.dot(fromBaseVector.T, fromBaseVector))
+                qij = np.dot(toBaseVector.T,fromBaseVector)
+                self.assertTrue(qij != 0)
+                baseChangeMatrix[i,j] = qij
+
+        self.assertTrue(baseChangeMatrix.shape == (5,5))
+        
+        sample1 = np.array(dataSet[0])
+        coefficients = pca.transform(sample1.reshape(1,-1))
+        sample1InPCBasis = pca.inverse_transform(coefficients)
+
+        physicalComponents = baseChangeMatrix.T@coefficients.T
+        print(physicalComponents)
+        sample1InOriginalBasis = basisSet.T@physicalComponents
+
+        plt.plot(sample1,label='Sample 1')
+        plt.plot(sample1InOriginalBasis,label='Sample 1 in original')
+        plt.plot(sample1InPCBasis.T,label='Sample 1 in PC')
+        # plt.plot(basisSet[0]*physicalComponents[0],label='{0} x base1'.format(physicalComponents[0]))
+        # plt.plot(basisSet[1]*physicalComponents[1],label='{0} x base2'.format(physicalComponents[1]))
+        # plt.plot(basisSet[2]*physicalComponents[2],label='{0} x base3'.format(physicalComponents[2]))
+        # plt.plot(basisSet[3]*physicalComponents[3],label='{0} x base4'.format(physicalComponents[3]))
+        # plt.plot(basisSet[4]*physicalComponents[4],label='{0} x base5'.format(physicalComponents[4]))
+
+        plt.legend()
+        plt.show()
 
 if __name__ == '__main__':
     unittest.main()
