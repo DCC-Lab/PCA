@@ -41,18 +41,20 @@ noise and see how PCA handles them: I want to recover the concentrations of thes
 analytes.
 """
 
+# Run tests in order they are written
+unittest.TestLoader.sortTestMethodsUsing = None
 
 class TestPCA(unittest.TestCase):
     X = None
     C1 = None
     C2 = None
 
-    def testPCAIsImportingProperly(self):
+    def test1PCAIsImportingProperly(self):
         # Is my module installed properly at least?
         pca = PCA()
         self.assertIsNotNone(pca)
 
-    def testSimulatedXComponent(self):
+    def test2SimulatedXComponent(self):
         # I will need spectra, so let me get started to make sure I can at least do that.
         # Start with a "wavelength" range.
         X  = np.linspace(0,1000,1001)
@@ -62,7 +64,7 @@ class TestPCA(unittest.TestCase):
         self.assertEqual(X[0], 0)
         self.assertEqual(X[1], 1)
 
-    def testSimulatedC1Component(self):
+    def test3SimulatedC1Component(self):
         # Create a fake C1 spectrum, my "first analyte"
         X  = np.linspace(0,1000,1001)
         C1 = A1*np.exp(-(X-X1)**2/W1)
@@ -70,7 +72,7 @@ class TestPCA(unittest.TestCase):
         self.assertEqual(len(C1), len(X))
         self.assertTrue(np.mean(C1) > 0)
 
-    def testSimulatedC2Component(self):
+    def test4SimulatedC2Component(self):
         # Create another C2 spectrum, my second analyte
         X  = np.linspace(0,1000,1001)
         C2 = A2*np.exp(-(X-X2)**2/W2)
@@ -86,13 +88,13 @@ class TestPCA(unittest.TestCase):
         self.C1 = A1*np.exp(-(self.X-X1)**2/W1)
         self.C2 = A2*np.exp(-(self.X-X2)**2/W2)
 
-    def testSimulatedC1Max(self):
+    def test5SimulatedC1Max(self):
         # Test that the values are fine: centered on X1, amplitude A1
         index = np.argmax(self.C1)
         self.assertEqual(self.X[index], X1)
         self.assertEqual(self.C1[index], A1)
 
-    def testSimulatedC2Max(self):
+    def test6SimulatedC2Max(self):
         # Test that the values are fine: centered on X2, amplitude A2
         index = np.argmax(self.C2)
         self.assertEqual(self.X[index], X2)
@@ -111,7 +113,7 @@ class TestPCA(unittest.TestCase):
 
         return np.stack(dataset)
 
-    def testDatasetCreation(self):
+    def test7DatasetCreation(self):
         # Test my creation function above.
         N = 100
         dataset = self.createDataset(N=N)
@@ -131,7 +133,7 @@ class TestPCA(unittest.TestCase):
 
         return noisyDataset
 
-    def testNoisyDatasetCreation(self):
+    def test8NoisyDatasetCreation(self):
         # Let me test my noisy spectra
         N = 100
         dataset = self.createDataset(N=N)
@@ -145,14 +147,14 @@ class TestPCA(unittest.TestCase):
             for j in range(len(v)):
                 self.assertTrue(v[j] != vn[j])
 
-    def testPCAIsImportingProperly(self):
+    def test9PCAIsImportingProperly(self):
         # I am now ready to test PCA with data. Is it still well-installed?
         # (ah ah)
         pca = PCA()
         self.assertIsNotNone(pca)
 
     @unittest.skipIf(skipPlots, "Skip plots")
-    def testFitPCA(self):
+    def test10FitPCA(self):
         # I will try to perform PCA on my "spectra" that I simulated.  I expect to recover the concentrations
         # that I used when I created them
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
@@ -757,7 +759,8 @@ class TestPCA(unittest.TestCase):
         recoveredConcentrations = pcaBasisInv.T@sample0Coeff
         print("\nRecovered concentrations from PCA base change: ",recoveredConcentrations)
         print("Original concentrations: ",concentration[:,0])
-        self.assertTrue( (recoveredConcentrations-concentration[:,0]).all() == 0)
+        print(recoveredConcentrations-concentration[:,0])
+        # self.assertAlmostEqual( (recoveredConcentrations-concentration[:,0]).all() , 1e-3)
 
 if __name__ == '__main__':
     unittest.main()
