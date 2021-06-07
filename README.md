@@ -24,9 +24,21 @@ It may even be possible to separate both substances if we have a mixture of the 
 
 We know intuitively that if peaks belong to the same molecule, they should vary together.  If by chance none of the peaks from the different analytes overlap, then it becomes trivial: we only need to identify the peaks, find their amplitudes, and we will quickly get the concentrations of the respective analytes. But things get complicated if they have overlapping peaks, and even worse if we have more than a few components.  
 
+## Setting things up
+
 From a mathematical point of view, we can consider a spectrum as a **vector**:
 $$
 \mathbf{S} = \sum_{i=0}^{N} I_i\mathbf{\hat{\nu}}_i
 $$
-where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vector.  Therefore, if we have 1024 points in our intensity spectrum, we are in an N-dimensional space. 
+where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vector.  Therefore, if we have 1024 points in our intensity spectrum, we are in an N-dimensional space. However, we know from experience that in a spectrum, intensities are not completely independent: for instance, in the methanol spectrum above, the peak around 1000 cm$^{-1}$ has a certain width and therefore those intensities are related and are not independent. In fact, for the methanol spectrum, *all intensities* are related because any spectrum of any concentration of methanol can be explained by a scaled version of the original methanol spectrum.  If we have the reference methanol spectrum:
+$$
+\mathbf{\hat{B}}_M = \sum_{i=0}^{N} I_{M,i}\mathbf{\hat{\nu}}_i,
+$$
+any other solution of methanol of concentration $c$ would simply yield the spectrum:
+$$
+\mathbf{S} = c\mathbf{\hat{B}}_M = c \sum_{i=0}^{N} I_{M,i}\mathbf{\hat{\nu}}_i,
+$$
+
+
+
 
