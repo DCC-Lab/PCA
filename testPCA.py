@@ -233,26 +233,33 @@ class TestPCA(unittest.TestCase):
         # shape = (# base, #spectral_pts)
         
         m, nPts = basisSet.shape
-        dataset = []
-        for i in range(N):
-            vector = np.zeros(nPts)
-            for j in range(m):
-                cj = random.random()
-                vector += cj*basisSet[j]
-            dataset.append(vector)
+        C = np.random.rand(m, N)
 
-        return np.stack(dataset)
+        return (basisSet.T@C).T, C
 
     def testDatasetCreationFromBasisSet(self):
         # Is this createDatasetFromBasisSet working as expected?
         N = 100
         basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
-        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        dataset, concentration = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
         dataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
 
         self.assertTrue(len(dataset) == N)
         for v in dataset:
             self.assertTrue(len(v) == len(self.X))
+
+    def testMeanSpectrumCalculation(self):
+        # I should be able to recover the mean from a simple calculation
+        N = 100
+        basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataset, concentration = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        # dataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.01)
+
+        meanConcentration = np.mean(concentration, axis=1)
+        meanSpectrum = basisSet.T@meanConcentration
+        pca = PCA(n_components=6)
+        pca.fit(dataset)
+        self.assertEqual( (pca.mean_.T-meanSpectrum.T).all(), 0)
 
     @unittest.skipIf(skipPlots, "Skip plots")
     def testFitPCAWithMoreComplexBasisSet(self):
@@ -261,7 +268,7 @@ class TestPCA(unittest.TestCase):
         # I am following https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
         N = 100
         basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
-        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        dataset, concentration = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
 
         pca = PCA(n_components=2)
@@ -294,7 +301,7 @@ class TestPCA(unittest.TestCase):
         N = 100
         basisDimension = 5
         basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
-        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        dataset, concentration = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
         
         # We keep most components to get a "perfect fit"
@@ -329,7 +336,7 @@ class TestPCA(unittest.TestCase):
         N = 100
         basisDimension = 5
         basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
-        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        dataset, concentration = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
         
         errors = []
@@ -362,7 +369,7 @@ class TestPCA(unittest.TestCase):
         N = 100
         basisDimension = 5
         basisSet = self.createBasisSet(self.X, N=basisDimension, maxPeaks=3, maxAmplitude=1, maxWidth=30, minWidth=5)
-        dataset = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
+        dataset, concentration = self.createDatasetFromBasisSet(N=N, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=0.1)
         
         # We keep most components to get a "perfect fit"
@@ -435,12 +442,12 @@ class TestPCA(unittest.TestCase):
         # I am sick of creating a noisy dataset every time. Here is a useful function.
         basisSet = self.createNormalizedBasisSet(self.X, N=basisDimension, maxPeaks=maxPeaks, 
                                        maxAmplitude=maxAmplitude, maxWidth=maxWidth, minWidth=minWidth)
-        dataset = self.createDatasetFromBasisSet(N=nSamples, basisSet=basisSet)
+        dataset, concentration = self.createDatasetFromBasisSet(N=nSamples, basisSet=basisSet)
         noisyDataset = self.newDatasetWithAdditiveNoise(dataset, fraction=noiseFraction)
-        return basisSet, noisyDataset
+        return np.array(basisSet), np.array(noisyDataset), np.array(concentration)
 
     def testAgainWithNormalizedBasisSetPCAreNormalized(self):
-        basisSet, noisyDataset = self.createNormalizedNoisyDataset()
+        basisSet, noisyDataset, concentration = self.createNormalizedNoisyDataset()
 
         componentsToKeep = 5
         pca = PCA(n_components=componentsToKeep)
@@ -450,7 +457,7 @@ class TestPCA(unittest.TestCase):
             self.assertAlmostEqual(magnitude, 1.0)
 
     def testValidateProjectionsBasisSetOntoPrincipalComponents(self):
-        basisSet, noisyDataset = self.createNormalizedNoisyDataset()
+        basisSet, noisyDataset, concentration = self.createNormalizedNoisyDataset()
 
         componentsToKeep = 5
         pca = PCA(n_components=componentsToKeep)
@@ -467,7 +474,7 @@ class TestPCA(unittest.TestCase):
     def testBaseChange(self):
         # All I have left to do is to perform a base change from pca.components to my basisSet
         # I am following Greenberg 10.7 but my basis set is not Orthonormal. Careful.
-        basisSet, dataSet = self.createNormalizedNoisyDataset()
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset()
         self.assertIsNotNone(basisSet)
         self.assertIsNotNone(dataSet)
         componentsToKeep = 5
@@ -499,22 +506,73 @@ class TestPCA(unittest.TestCase):
         plt.legend()
         plt.show()
 
-    def testMoreBaseChangeTesting(self):
-        basisSet, dataSet = self.createNormalizedNoisyDataset()
+    @unittest.expectedFailure
+    def testNonOrthogonalBaseChangeTesting(self):
+        # My basis set is not orthogonal, therefore this test will fail
+        # The equation for qij is not just the dot product of two vectors
+
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset()
+        self.assertIsNotNone(basisSet)
+
+        for i, toBaseVector in enumerate(basisSet):
+            for j, fromBaseVector in enumerate(basisSet):
+                qij = np.dot(toBaseVector.T,fromBaseVector)
+                if i == j:
+                    self.assertAlmostEqual(qij, 1.0, 3)
+                else:
+                    self.assertAlmostEqual(qij, 0.0, 3)
+
+    @unittest.expectedFailure
+    def testNonOrthogonalBaseChangeTesting(self):
+        # My basis set is not orthogonal, therefore this test will fail
+        # The equation for qij is not just the dot product of two vectors
+        
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset()
+        self.assertIsNotNone(basisSet)
+
+        for i, toBaseVector in enumerate(basisSet):
+            for j, fromBaseVector in enumerate(basisSet):
+                qij = np.dot(toBaseVector.T,fromBaseVector)
+                if i == j:
+                    self.assertAlmostEqual(qij, 1.0, 3)
+                else:
+                    self.assertAlmostEqual(qij, 0.0, 3)
+
+    @unittest.skip("sometimes fail of course")
+    def testProbablyOrthogonalBaseChangeTesting(self):
+        # My basis set is not orthogonal with large peaks, therefore
+        # Let me make an orthogonal basis with very narrow peaks.
+        # The probabiblity that two peaks overlap will be small and
+        # my bsis should be orthogonal
+        
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(maxPeaks=1, maxWidth=2, minWidth=1)
+        self.assertIsNotNone(basisSet)
+
+        for i, toBaseVector in enumerate(basisSet):
+            for j, fromBaseVector in enumerate(basisSet):
+                qij = np.dot(toBaseVector.T,fromBaseVector)
+                if i == j:
+                    self.assertAlmostEqual(qij, 1.0, 3)
+                else:
+                    self.assertAlmostEqual(qij, 0.0, 3)
+
+    def testNonOrthogonalBaseChangeValidatingRealCorrectEquation(self):
+        # So equation (10) in greenberg is not valid with non orthogonal basis
+        # The thing is, I know how to express my original vectors on the principal
+        # components basis, it is simply pca.transform(basisSet)
+        
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset()
         self.assertIsNotNone(basisSet)
         componentsToKeep = 5
         pca = PCA(n_components=componentsToKeep)
         pca.fit(dataSet)
 
-        baseChangeMatrix = np.ndarray(shape=(5,5))
-        for i, toBaseVector in enumerate(basisSet):
-            for j, fromBaseVector in enumerate(basisSet):
-                qij = np.dot(toBaseVector.T,fromBaseVector)
-                baseChangeMatrix[i,j] = qij
-        print(baseChangeMatrix)
+        Q = pca.transform(basisSet)
+        invQ = np.linalg.inv(Q)
 
+    @unittest.skip("No plots")
     def testShowTranslatedPCs(self):
-        basisSet, dataSet = self.createNormalizedNoisyDataset()
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset()
         componentsToKeep = 5
         pca = PCA(n_components=componentsToKeep)
         pca.fit(dataSet)
@@ -525,43 +583,190 @@ class TestPCA(unittest.TestCase):
         plt.legend()
         plt.show()
 
-    def testRecoverConcentrationWithBaseChange(self):
-        basisSet, dataSet = self.createNormalizedNoisyDataset()
+    def testMatrixConstruction(self):
+        one = np.ones(shape=(5,5))
+        for i in range(5):
+            for j in range(5):
+                self.assertEqual(one[i,j], 1.0)  
+
+        half = np.ones(shape=(5,5))
+        half *= 0.5
+        for i in range(5):
+            for j in range(5):
+                self.assertEqual(half[i,j], 0.5)
+
+        identity = np.identity(5)
+        self.assertIsNotNone(identity-half)        
+
+    @unittest.skip
+    def testBasisV0SpectrumInPCSpace(self):
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
         self.assertIsNotNone(basisSet)
         self.assertIsNotNone(dataSet)
         componentsToKeep = 5
         pca = PCA(n_components=componentsToKeep)
+        self.assertTrue(basisSet.shape == (5, 1001))
+        self.assertTrue(dataSet.shape == (100, 1001))
         pca.fit(dataSet)
 
-        baseChangeMatrix = np.ndarray(shape=(componentsToKeep,5))
-        for i, toBaseVector in enumerate(basisSet):
-            for j, fromBaseVector in enumerate(pca.components_+pca.mean_):
-                # fromBaseVector /= np.sqrt(np.dot(fromBaseVector.T, fromBaseVector))
-                qij = np.dot(toBaseVector.T,fromBaseVector)
-                self.assertTrue(qij != 0)
-                baseChangeMatrix[i,j] = qij
+        v0 = basisSet[0,:].squeeze()
+        self.assertTrue(v0.shape == (1001,))
 
-        self.assertTrue(baseChangeMatrix.shape == (5,5))
-        
-        sample1 = np.array(dataSet[0])
-        coefficients = pca.transform(sample1.reshape(1,-1))
-        sample1InPCBasis = pca.inverse_transform(coefficients)
+        v0Coefficients = pca.transform(v0.reshape(1,-1)).squeeze()
+        self.assertTrue(v0Coefficients.shape == (5,))
 
-        physicalComponents = baseChangeMatrix.T@coefficients.T
-        print(physicalComponents)
-        sample1InOriginalBasis = basisSet.T@physicalComponents
+        v0PCA  = (pca.components_.T@v0Coefficients + pca.mean_).squeeze()
+        self.assertTrue(v0Coefficients.shape == (componentsToKeep,))
+        v0Orig = (basisSet.T@(1,0,0,0,0)).squeeze()
 
-        plt.plot(sample1,label='Sample 1')
-        plt.plot(sample1InOriginalBasis,label='Sample 1 in original')
-        plt.plot(sample1InPCBasis.T,label='Sample 1 in PC')
-        # plt.plot(basisSet[0]*physicalComponents[0],label='{0} x base1'.format(physicalComponents[0]))
-        # plt.plot(basisSet[1]*physicalComponents[1],label='{0} x base2'.format(physicalComponents[1]))
-        # plt.plot(basisSet[2]*physicalComponents[2],label='{0} x base3'.format(physicalComponents[2]))
-        # plt.plot(basisSet[3]*physicalComponents[3],label='{0} x base4'.format(physicalComponents[3]))
-        # plt.plot(basisSet[4]*physicalComponents[4],label='{0} x base5'.format(physicalComponents[4]))
-
+        plt.plot(v0,label="v0")
+        plt.plot(v0PCA,label="v0pca")
+        # plt.plot(dataSet[0,:],label="V0dataset")
+        plt.plot(v0Orig,label="v0Orig")
         plt.legend()
         plt.show()
+        self.assertTrue( (v0-v0PCA).all() == 0)
+        self.assertTrue( (v0-v0Orig).all() == 0)
+
+        # identity = np.identity(5)
+        # baseChangeMatrixFromPCToOriginal = (identity-meanConcentration)@np.linalg.inv(baseChangeMatrixFromOriginalToPC)
+
+        # sample1 = np.array(dataSet[0])
+        # concentrationSample1 = np.array(concentration[:,0])
+
+        # coefficientsInPC = pca.transform(sample1.reshape(1,-1))
+        # physicalComponents = baseChangeMatrixFromPCToOriginal.T@coefficientsInPC.T
+        # print(physicalComponents, concentrationSample1)
+        
+        # sample1InOriginalBasis = basisSet.T@concentrationSample1
+        # sample1InOriginalBasis = sample1InOriginalBasis.squeeze()
+    @unittest.skip
+    def testBasisSpectrumInOriginalSpace(self):
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
+        self.assertIsNotNone(basisSet)
+        self.assertIsNotNone(dataSet)
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        self.assertTrue(basisSet.shape == (5, 1001))
+        self.assertTrue(dataSet.shape == (100, 1001))
+        pca.fit(dataSet)
+
+        meanBasis = np.stack((pca.mean_,pca.mean_,pca.mean_,pca.mean_,pca.mean_))
+
+        c = pca.transform(dataSet)
+        print(c.shape)
+        a = pca.transform(basisSet-meanBasis)
+        print(a.shape)
+
+        aInv = np.linalg.inv(a)
+        print(aInv.shape)
+        deltaC = aInv@c.T
+        print(deltaC.shape)
+        print(deltaC[:,0].squeeze() + np.mean(concentration,axis=1))
+        print(concentration[:,0])
+        self.assertTrue(aInv.shape == (5,5))
+
+        # coefficientsInPC = pca.transform(sample1.reshape(1,-1))
+        # physicalComponents = baseChangeMatrixFromPCToOriginal.T@coefficientsInPC.T
+        # print(physicalComponents, concentrationSample1)
+        
+        # sample1InOriginalBasis = basisSet.T@concentrationSample1
+        # sample1InOriginalBasis = sample1InOriginalBasis.squeeze()
+
+    @unittest.skip
+    def testWhatIsMeanInPCACoordinates(self):
+        # The sklearn module always substracts the mean of all spectra, and this causes issues
+        # when trying to make a base change.  I am looking for the mean_ vector expressed 
+        # in pca coordinates so I can add it to the components I get from transform()
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
+        self.assertIsNotNone(basisSet)
+        self.assertIsNotNone(dataSet)
+        self.assertTrue(dataSet.shape == (100, 1001))
+        self.assertTrue(basisSet.shape == (5, 1001))
+        self.assertTrue(concentration.shape == (5, 100))
+
+        componentsToKeep = 6
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(dataSet)
+        origin = np.zeros(1001)
+        originCoeffs = pca.transform(origin.reshape(1,-1))
+        print(originCoeffs)
+
+    def testRecoverConcentrationWithBaseChange(self):
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
+        self.assertIsNotNone(basisSet)
+        self.assertIsNotNone(dataSet)
+        meanConcentration = np.mean(concentration,axis=1)
+        meanConcentrationMatrix = np.array([meanConcentration]*100)
+        meanDataSet = basisSet.T@meanConcentrationMatrix.T
+        centeredDataSet = dataSet - meanDataSet.T
+
+        componentsToKeep = 5
+        pca = PCA(n_components=componentsToKeep)
+        self.assertTrue(dataSet.shape == (100, 1001))
+        self.assertTrue(basisSet.shape == (5, 1001))
+        self.assertTrue(concentration.shape == (5, 100))
+        pca.fit(dataSet)
+
+        originBasis = np.zeros(shape=(5, 1001))
+        originDataSet = np.zeros(shape=(100, 1001))
+
+        pcaDataCoefficients = pca.transform(dataSet)-pca.transform(originDataSet)
+        pcaBasis = pca.transform(basisSet)-pca.transform(originBasis)
+        pcaBasisInv = np.linalg.inv(pcaBasis) # must have 5 components and 5 base vectors
+
+        recoveredDataSet = pca.components_.T@pcaDataCoefficients.T
+        sample0Coeff = pcaDataCoefficients[0,:]
+        self.assertTrue(sample0Coeff.shape==(5,))
+
+        recoveredConcentrations = pcaBasisInv.T@sample0Coeff
+        print("\nRecovered concentrations from PCA base change: ",recoveredConcentrations)
+        print("Original concentrations: ",concentration[:,0])
+        self.assertTrue( (recoveredConcentrations-concentration[:,0]).all() == 0)
+
+
+    @unittest.skip("This is a failed attempt at getting something to work")
+    def testRecoverConcentrationByProjectingInPCSpaceOnOriginalBasis(self):
+        basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
+        self.assertIsNotNone(basisSet)
+        self.assertIsNotNone(dataSet)
+        self.assertTrue(dataSet.shape == (100, 1001))
+        self.assertTrue(basisSet.shape == (5, 1001))
+        self.assertTrue(concentration.shape == (5, 100))
+        meanConcentration = np.mean(concentration, axis=1)
+        self.assertTrue(meanConcentration.shape == (5,))
+
+        componentsToKeep = 6
+        pca = PCA(n_components=componentsToKeep)
+        pca.fit(dataSet)
+
+        origin = np.zeros(1001)
+        originCoeffs = pca.transform(origin.reshape(1,-1))
+
+        pcaDataCoefficients  = pca.transform(dataSet)
+        pcaBasisCoefficients = pca.transform(basisSet)
+        self.assertTrue(pcaDataCoefficients.shape == (100, componentsToKeep))
+        self.assertTrue(pcaBasisCoefficients.shape == (5, componentsToKeep))
+
+        sample0 = pcaDataCoefficients[0,:].squeeze()
+        print("\nNorm sample0 ", np.linalg.norm(sample0))
+        base0   = pcaBasisCoefficients[0,:].squeeze()
+        print("Norm base0 ", np.linalg.norm(base0))
+        delta = np.dot(sample0, base0)
+
+        print("Dot product ", delta)
+        print("M coeffs ", originCoeffs[0,0])
+        print("Concentration sample0 ", concentration[0,0])
+        print("Mean concentration ", meanConcentration[0])
+
+    @unittest.skip
+    def testEasyBaseChange(self):
+        # Do I understand whjat the hell I am trying to do?
+        # Can I even do a simple base change with non-orthogonal base?
+        q = np.array( [[1,1,1],[0,1,1],[0,0,1]])
+        invQ = np.linalg.inv(q)
+        print(q)
+        print(invQ) # looks good, hard to test
 
 if __name__ == '__main__':
     unittest.main()
