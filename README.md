@@ -30,7 +30,7 @@ From a mathematical point of view, we can consider a spectrum as a **vector** of
 $$
 \mathbf{S} = \sum_{i=0}^{N} I_i\mathbf{\hat{\nu}}_i,
 $$
-where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vector and $I_i$ is the intensity at that frequency.  Therefore, if we have 1024 points in our intensity spectrum, we are in an N-dimensional space, with the components vector $(I_0,I_1,I_2,...I_N)$, and we should assume that these components are all independent. If we define the norm of a vector from the dot product, we can say that the norm is equal to:
+where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vectors and $I_i$ is the intensity at that frequency.  Therefore, if we have 1024 points in our intensity spectrum, we are in an N-dimensional space, with the components vector $(I_0,I_1,I_2,...I_N)$, and we should assume that these components are all independent. If we define the norm of a vector from the dot product, we can say that the norm is equal to:
 $$
 \left|\mathbf{S} \right| = \sum_{i=0}^{N} I_i\mathbf{\hat{\nu}}_i \cdot \sum_{j=0}^{N} I_j\mathbf{\hat{\nu}}_j = \sum_{i=0}^{N}\sum_{j=0}^{N} I_i I_j\ \hat{\nu}_i \cdot \hat{\nu}_j = \sum_{i=0}^{N} \left|I_i\right|^2 
 $$
