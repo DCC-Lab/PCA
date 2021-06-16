@@ -30,6 +30,7 @@ We know intuitively that if peaks belong to the same molecule, they should vary 
 
 ## Setting things up: spectra as vectors
 
+
 From a mathematical point of view, we can consider a spectrum as a **vector** of intensities:
 $$
 \mathbf{S} = \sum_{i=1}^{N} I_i\mathbf{\hat{\nu}}_i,
@@ -81,7 +82,6 @@ And if we want to describe the $M$ spectra from samples otbained from mixing of 
 $$
 \mathbf{S} = \mathbf{\hat{B}} \cdot C_\mathbf{B}
 $$
-
 
 
 
