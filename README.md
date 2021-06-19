@@ -137,18 +137,47 @@ $$
 \left[\mathbf{C}\right]_\mathbf{b} \right)
 =
 \mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+\label{eq:base}
 $$
 This means that, when the vectors in different bases are expressed by $(\ref{eq:vectorBasis})$, the coordinates in the basis $\hat{b}^\prime$ can be obtained from the components in the basis $\hat{b}$ by this simple transformation:
 $$
 \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} \equiv \left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}
 \left[\mathbf{C}\right]_\mathbf{b}
 $$
- 
 
 ## More base change
 
-Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis.  We will see later that Principal Component Analysis often *translates* the sample vectors to the "origin" by subtracting the mean spectrum of all samples. This means that we have a more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{M}}$:
+Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis.  We will see later that Principal Component Analysis (PCA) often *translates* the sample vectors (i.e. the intensity spectra) to the "origin" by subtracting the mean spectrum from all spectra. This means that we have a more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{I}}$:
 $$
-\mathbf{I}-\mathbf{\bar{M}}= \mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+\mathbf{I}-\mathbf{\bar{I}}= \mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime},
 \label{eq:vectorBasis2}
 $$
+with 
+$$
+\mathbf{\bar{I}} = \frac{1}{m} \sum_{j=1}^{m} \mathbf{{I}}_{i} \equiv 
+\left( \hat{\nu}_1,\hat{\nu}_2, ..., \hat{\nu}_n \right)
+\left( \mathbf{\bar{I}}_{1},\mathbf{\bar{I}}_{2}, ..., \mathbf{\bar{I}}_{n} \right)^T
+\equiv 
+\hat{\nu} \left[ \mathbf{\bar{I}} \right]_\nu
+$$
+This average is computed in the "intensity" basis (or original basis $\left\{\mathbf{\hat{\nu}}\right\}$) because that is the only basis we know when we start. This small change where we subtract the mean is important, because to return to another basis used to generate $\mathbf{I}$, we need to write:
+$$
+\mathbf{I} 
+= 
+\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} + \mathbf{\bar{I}}
+=
+\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
+$$
+and if we try to follow the same development as in $(\ref{eq:base})$, we would quickly get stuck because we do not have $\mathbf{\bar{I}}$ neither in $\left\{\mathbf{b}\right\}$ or $\left\{\mathbf{b}^\prime\right\}$ coordinates:
+$$
+\mathbf{I} 
+= 
+\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} + \hat{\nu} \left[ \mathbf{\bar{I}} \right]_\nu
+=
+\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
+\label{eq:translated}
+$$
+We can do two things:
+
+1. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}$
+2. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}^\prime$
