@@ -35,7 +35,7 @@ From a mathematical point of view, we can consider a spectrum as a **vector** of
 $$
 \mathbf{I} = \sum_{i=1}^{n} I_i\mathbf{\hat{\nu}}_i,
 $$
-where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vectors and $I_i$ is the intensity at that frequency.  Therefore, if we have 1024 points in our intensity spectrum $\mathbf{I}$, we are in an N-dimensional space, with the components being $(I_1,I_2,...I_N)$, and we should assume (at least for now) that these components are all independent. If we define the **norm** of a vector from the **dot product**, we can say that the norm is equal to:
+where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vectors and $I_i$ is the intensity at that frequency.  Therefore, if we have N=1024 points in our intensity spectrum $\mathbf{I}$, we are in an N-dimensional space, with the components being $(I_1,I_2,...I_N)$, and we should assume (at least for now) that these components are all independent. If we define the **norm** of a vector from the **dot product**, we can say that the norm is equal to:
 $$
 \left|\mathbf{I} \right|^2 = \sum_{i=1}^{n} I_i\mathbf{\hat{\nu}}_i \cdot \sum_{j=1}^{n} I_j\mathbf{\hat{\nu}}_j = \sum_{i=1}^{n}\sum_{j=1}^{n} I_i I_j\ \hat{\nu}_i \cdot \hat{\nu}_j = \sum_{i=1}^{n} \left|I_i\right|^2,
 $$
@@ -70,29 +70,29 @@ Note that the vector itself $\mathbf{I}$ is different from the *components of th
 
 ## Spectra as *dependent* vectors
 
-However, we know from experience that in a spectrum, intensities are not completely independent: for instance, in the methanol spectrum above, the peak around 1000 cm$^{-1}$ has a certain width and therefore those intensities are related and are not independent. In fact, for the spectrum of a single substance, *all intensities* are related because they will come from a scaled version of the original spectrum. Therefore, if we have the reference methanol spectrum for a unity concentration:
+However, we know from experience that in a spectrum, intensities are not completely independent: for instance, in the methanol spectrum above, the peak around 1000 cm$^{-1}$ has a certain width and therefore those intensities are related and are not independent. In fact, for the spectrum of a single substance, *all intensities* are related because they will come from a scaled version of the original spectrum. Therefore, if we have the reference methanol spectrum for a unity concentration $\mathbf{\hat{s}}_M$:
 $$
-\mathbf{\hat{b}}_M = \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i,
+\mathbf{\hat{s}}_M = \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i,
 $$
 where $I_{M,i}$ is the relative intensity at frequency $\nu_i$. Any other solution of methanol of scalar concentration $c_M$ would simply yield the spectrum:
 $$
-\mathbf{I} = c_M\mathbf{\hat{b}}_M = c_M \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i.
+\mathbf{I} = c_M\mathbf{\hat{s}}_M = c_M \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i.
 $$
-So if we have several base solutions $\left\{\mathbf{\hat{b}}_j\right\}$ from which we create a mixture of concentrations $c_j$, we can write its spectrum $\mathbf{I}$ as:
+So if we have several individual solutions $\left\{\mathbf{\hat{s}}_j\right\}$ from which we create a mixture of concentrations $c_j$, we will generate spectra in a sub-space of the original $n$-dimensional intensity vector-space. The set of vectors $\left\{\mathbf{\hat{s}}_j\right\}$ is a basis set because we can generate all vectors in that sub-space with a linear combination of the vectors (or spectra). The dimension of that subspace is equal to the number of elements in $\left\{\mathbf{\hat{s}}_j\right\}$ We can write the mixture spectrum $\mathbf{I}$ as:
 $$
-\mathbf{I} = \sum_j c_j\mathbf{\hat{b}}_j = \left( \mathbf{\hat{b}}_1, \mathbf{\hat{b}}_2,...,\mathbf{\hat{b}}_n \right)  \left( c_1, c_2,...,c_n \right)^T = \mathbf{\hat{b}}  [ c ]_\mathbf{B}
+\mathbf{I} = \sum_j c_j\mathbf{\hat{s}}_j = \left( \mathbf{\hat{s}}_1, \mathbf{\hat{s}}_2,...,\mathbf{\hat{s}}_n \right)  \left( c_1, c_2,...,c_n \right)^T = \mathbf{\hat{s}}  [ c ]_\mathbf{\hat{s}}
 $$
-Again, we read the last expression $\left[ c \right]_\mathbf{B} $ as "the coefficients in base $\left\{\mathbf{b}\right\}$  needed to multiply the base vectors $\mathbf{\hat{b}}_i$ to obtain the final spectrum $\mathbf{I}$". It stresses the point that the vector $\mathbf{I}$ and its components in a given basis are not the same thing. This will become critical below when we look a Principal Components.
+Again, we read the last expression $[ c ]_\mathbf{\hat{s}}$ as "the coefficients in base $\left\{\mathbf{\hat{s}}\right\}$ needed to multiply the base vectors $\mathbf{\hat{s}}_i$ to obtain the final spectrum $\mathbf{I}$". It stresses the point that the vector $\mathbf{I}$ and its components in a given basis $[ c ]_\mathbf{\hat{s}}$ are not the same thing. This will become critical below when we look a Principal Components.
 
-Finally, if we want to describe a collection of $m$ spectra obtained from mixing these base solutions $\mathbf{b}$ with concentrations $c_{ij}$ for the i-th spectrum and the j-th base solution, we can write:
+Finally, if we want to describe a **collection** of $m$ spectra obtained from mixing these base solutions $\mathbf{\hat{s}}$ with concentrations $c_{ij}$ for the i-th spectrum and the j-th base solution, we can write:
 
 $$
-\mathbf{I}_i = \sum_{j} c_{ij}\mathbf{\hat{b}}_j.
+\mathbf{I}_i = \sum_{j} c_{ij}\mathbf{\hat{s}}_j.
 $$
 
 This can be rewritten in matrix notation:
 $$
-\left( \mathbf{I}_1, \mathbf{I}_2,...,\mathbf{I}_n \right) = \left( \mathbf{\hat{b}}_1, \mathbf{\hat{b}}_2,...,\mathbf{\hat{b}}_n \right) 
+\left( \mathbf{I}_1, \mathbf{I}_2,...,\mathbf{I}_m \right) = \left( \mathbf{\hat{s}}_1, \mathbf{\hat{s}}_2,...,\mathbf{\hat{s}}_n \right) 
 \left( 
 \begin{matrix}
 c_{11} & c_{21} & ... & c_{m1} \\
@@ -100,13 +100,15 @@ c_{12} & c_{22} & ... & c_{m2} \\
 ... & ... & ...& ...\\
 c_{1n} & c_{2n} & ... & c_{mn}
 \end{matrix}
-\right) 
+\right)
 $$
 
 to yield this very compact form:
 $$
-\mathbf{I} = \mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b}
+\mathbf{I} = \mathbf{\hat{s}} \left[\mathbf{C}\right]_\mathbf{\hat{s}}
 $$
+
+This equation represents, in a single expression, the $m$ spectra obtained by mixing the $n$ solutions with concentrations $c_{ij}$ for the $i$-th spectrum and the $j$-th solution. 
 
 ## Final notes on intensity spectra as vectors
 
@@ -121,12 +123,12 @@ $$
 $$
 It is the purpose of the present section to show how to go from a basis b to a basis b', that is, how to transform the coefficients c into coefficients c'. For more information, you can look at the [Youtube Video](https://www.youtube.com/watch?v=FNuKax5NEpw&list=PLUxTghemi4FvGibCevLK8S89Q7d_eC9HX&index=33) on base changes. 
 
-Since we can express any vector in a basis, we can express the basis vectors $\mathbf{\hat{b}}$ in the $\mathbf{\hat{b}}^\prime$ basis:  
+Since we can express any vector in a basis, we can choose to express the basis vectors $\mathbf{\hat{b}}$ in the $\mathbf{\hat{b}}^\prime$ basis, with the coefficients $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$we do not know yet:  
 $$
 \mathbf{\hat{b}} = \mathbf{\hat{b}}^\prime \left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime},
 \label{eq:bprimetob}
 $$
-where each column of the matrix is the components of the vector $\hat{b}_i$ in the $\hat{b}^\prime$ basis. By definition, a basis set has enough vectors to cover the vector space, therefore both basis sets must have the same number of vectors, and the matrix $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$ is necessarily square, and can be inverted. We can therefore use $(\ref{eq:vectorBasis})$ in $(\ref{eq:bprimetob})$ and obtain simply:
+where each column of the matrix $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$ is the component of the vector $\hat{b}_i$ in the $\hat{b}^\prime$ basis. By definition, a basis set has enough vectors to cover the vector space, therefore both basis sets must have the same number of vectors, and the matrix $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$ is necessarily square, and can be inverted. We can therefore use $(\ref{eq:vectorBasis})$ in $(\ref{eq:bprimetob})$ and obtain simply:
 $$
 \mathbf{I} = \mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b} 
 =
@@ -145,7 +147,7 @@ $$
 \left[\mathbf{C}\right]_\mathbf{b}
 $$
 
-## More base change
+## PCA base change in `sklearn`
 
 Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis.  We will see later that Principal Component Analysis (PCA) often *translates* the sample vectors (i.e. the intensity spectra) to the "origin" by subtracting the mean spectrum from all spectra. This means that we have a more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{I}}$:
 $$
@@ -159,8 +161,9 @@ $$
 \left( \mathbf{\bar{I}}_{1},\mathbf{\bar{I}}_{2}, ..., \mathbf{\bar{I}}_{n} \right)^T
 \equiv 
 \hat{\nu} \left[ \mathbf{\bar{I}} \right]_\nu
+\label{eq:average}
 $$
-This average is computed in the "intensity" basis (or original basis $\left\{\mathbf{\hat{\nu}}\right\}$) because that is the only basis we know when we start. This small change where we subtract the mean is important, because to return to another basis used to generate $\mathbf{I}$, we need to write:
+This average is computed in the "intensity" basis (or original basis $\left\{\mathbf{\hat{\nu}}\right\}$) because that is the only basis we know when we start (i.e. we average all spectra). This small change where we subtract the mean is important, because to return to another basis used to generate $\mathbf{I}$, we need to write:
 $$
 \mathbf{I} 
 = 
@@ -168,7 +171,7 @@ $$
 =
 \mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
 $$
-and if we try to follow the same development as in $(\ref{eq:base})$, we would quickly get stuck because we do not have $\mathbf{\bar{I}}$ neither in $\left\{\mathbf{b}\right\}$ or $\left\{\mathbf{b}^\prime\right\}$ coordinates:
+and if we try to follow the same development as in $(\ref{eq:base})$, we would quickly get stuck because we do not have $\mathbf{\bar{I}}$ neither in $\left\{\mathbf{b}\right\}$ or $\left\{\mathbf{b}^\prime\right\}$ coordinates, we have it in the $\left\{\mathbf{\hat{\nu}}\right\}$ coordinates :
 $$
 \mathbf{I} 
 = 
@@ -177,7 +180,34 @@ $$
 \mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
 \label{eq:translated}
 $$
-We can do two things:
+Yet, this is the situation we will encounter later:
+
+1. $\mathbf{I} $ is the many spectra we have acquired in the lab.  They are in  $\left\{\mathbf{\hat{\nu}}\right\}$ basis (i.e. simple intensity spectra).
+2. We can compute $\mathbf{\bar{I}}$ with $(\ref{eq:average})$, also in the spectral component basis $\left\{\mathbf{\hat{\nu}}\right\}$.
+3. The $\left\{\mathbf{b}^\prime\right\}$ basis is the Principal Component Analysis (PCA) basis that will be obtained from the module together with the coefficients $\left[\mathbf{C}^\prime\right]_\mathbf{b^\prime}$.  It comes from a singular value decomposition, and at this point, we do not worry oursleves with how it is obtained: we know we can obtain $\left\{\mathbf{b}^\prime\right\}$ and $\left[\mathbf{C}^\prime\right]_\mathbf{b^\prime}$ from `sklearn` and PCA.
+4. Finally, the $\left\{\mathbf{b}\right\}$ basis is the "solution" basis for which we would like to get the concentrations $\left[\mathbf{C}\right]_\mathbf{b}$ for our lab measurements. We know *some* $\left\{\mathbf{b}_i\right\}$, but we may not know them all. In Raman, this could be the lipid spectrum, DNA spectrum, protein spectrum etc... We want the coefficients to try to determine the concentrations of these molecules and get insight (or answers) from our experimental spectra, but we may not have all the components (i.e. we may not have the full basis).
+
+There is mathematically not much we can do with these three coordinate systems in $(\ref{eq:translated})$, unless we express the average spectrum $\mathbf{\bar{I}}$ in one or the other bases.  We can do two things:
 
 1. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}$
 2. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}^\prime$
+
+For reasons that should become clear later, the `sklearn` PCA python module that we will use performs the multiplication $\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}$ to express the result in $\left\{\mathbf{\hat{\nu}}\right\}$ space *before* adding the mean, therefore we will choose to express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}$ :
+$$
+\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} + \mathbf{\hat{b}} \left[ \mathbf{\bar{I}} \right]_\mathbf{b}
+=
+\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
+$$
+
+$$
+\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+=
+\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b}-\mathbf{\hat{b}} \left[ \mathbf{\bar{I}} \right]_\mathbf{b},
+$$
+
+$$
+\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+=
+\mathbf{\hat{b}} \left( \left[\mathbf{C}\right]_\mathbf{b}- \left[ \mathbf{\bar{I}} \right]_\mathbf{b} \right),
+$$
+
