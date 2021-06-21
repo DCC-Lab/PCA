@@ -68,6 +68,19 @@ Note that the vector itself $\mathbf{I}$ is different from the *components of th
 * Watch [the video](https://www.youtube.com/watch?v=FNuKax5NEpw&list=PLUxTghemi4FvGibCevLK8S89Q7d_eC9HX&index=33) (in French) that explains in even more details where this comes from.
 * Watch [an example](https://www.youtube.com/watch?v=REWGdCBoAxI&list=PLUxTghemi4FvGibCevLK8S89Q7d_eC9HX&index=32) (in French) for problem 10.7.1 that discussed an application of this notation and formalism to perform a base change.
 
+## Bases
+
+A reminder for the definition of a base $\left\{ \mathbf{e}_i \right\}$:
+
+1. A base set is **complete**: it spans the space for which it is a base: you must be able to get every vector in that space with $\sum c_i \mathbf{e}_i$. We call the $c_i$ the components of a vector *in that base*.
+2. A base set is **linearly independent**: all base vectors are independent, and the only way to combine the base vectors to obtain the null vector $\sum c_i \mathbf{e}_i = \mathbf{0}$ is with $c_i =0$ for all $c_i$. 
+3. The number of base vectors in the set is the dimension of the space.
+
+Notice that :
+
+1. The base vectors **do not have to be unitary**: they can have any length. A **normalized** base set will be labelled with a hat on the vector $\left\{ \mathbf{\hat{e}}_i \right\}$, and an arbitrary set will be $\left\{ \mathbf{e}_i \right\}$.
+2. The base vectors **do not have to be orthogonal**: as long as they are independent, that is fine. There is no notation to differentiate orthogonal and non-orthogonal basis because the property of orthogonality is not a single vector property, it is a property of a pair of vectors, therefore we cannot label a vector as "orthogonal".
+
 ## Spectra as *dependent* vectors
 
 However, we know from experience that in a spectrum, intensities are not completely independent: for instance, in the methanol spectrum above, the peak around 1000 cm$^{-1}$ has a certain width and therefore those intensities are related and are not independent. In fact, for the spectrum of a single substance, *all intensities* are related because they will come from a scaled version of the original spectrum. Therefore, if we have the reference methanol spectrum for a unity concentration $\mathbf{\hat{s}}_M$:
@@ -118,40 +131,40 @@ If we have several components (i.e. methanol, ethanol, etc...) and there is no o
 
 The general expression for a vector as a function of its basis and its components in that basis is such that obviously, it stands correct for any basis:
 $$
-\mathbf{I} = \mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b} =\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+\mathbf{I} = \mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e} =\mathbf{{e}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{e^\prime}
 \label{eq:vectorBasis}
 $$
 It is the purpose of the present section to show how to go from a basis b to a basis b', that is, how to transform the coefficients c into coefficients c'. For more information, you can look at the [Youtube Video](https://www.youtube.com/watch?v=FNuKax5NEpw&list=PLUxTghemi4FvGibCevLK8S89Q7d_eC9HX&index=33) on base changes. 
 
-Since we can express any vector in a basis, we can choose to express the basis vectors $\mathbf{\hat{b}}$ in the $\mathbf{\hat{b}}^\prime$ basis, with the coefficients $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$we do not know yet:  
+Since we can express any vector in a basis, we can choose to express the basis vectors $\mathbf{{e}}$ in the $\mathbf{{e}}^\prime$ basis, with the coefficients $\left[ \mathbf{Q} \right]_{\mathbf{{e}}^\prime}$we do not know yet:  
 $$
-\mathbf{\hat{b}} = \mathbf{\hat{b}}^\prime \left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime},
+\mathbf{{e}} = \mathbf{{e}}^\prime \left[ \mathbf{Q} \right]_{\mathbf{{e}}^\prime},
 \label{eq:bprimetob}
 $$
-where each column of the matrix $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$ is the component of the vector $\hat{b}_i$ in the $\hat{b}^\prime$ basis. By definition, a basis set has enough vectors to cover the vector space, therefore both basis sets must have the same number of vectors, and the matrix $\left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}$ is necessarily square, and can be inverted. We can therefore use $(\ref{eq:vectorBasis})$ in $(\ref{eq:bprimetob})$ and obtain simply:
+where each column of the matrix $\left[ \mathbf{Q} \right]_{\mathbf{{e}}^\prime}$ is the component of the vector $\mathbf{e}_i$ in the $\mathbf{e}^\prime$ basis. By definition, a basis set has enough vectors to cover the vector space, therefore both basis sets must have the same number of vectors, and the matrix $\left[ \mathbf{Q} \right]_{\mathbf{{e}}^\prime}$ is necessarily square, and can be inverted. We can therefore use $(\ref{eq:vectorBasis})$ in $(\ref{eq:bprimetob})$ and obtain simply:
 $$
-\mathbf{I} = \mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b} 
+\mathbf{I} = \mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e} 
 =
-\left( \mathbf{\hat{b}}^\prime \left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime} \right)
-\left[\mathbf{C}\right]_\mathbf{b}
+\left( \mathbf{{e}}^\prime \left[ \mathbf{Q} \right]_{\mathbf{{e}}^\prime} \right)
+\left[\mathbf{C}\right]_\mathbf{e}
 =
-\mathbf{\hat{b}}^\prime \left( \left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}
-\left[\mathbf{C}\right]_\mathbf{b} \right)
+\mathbf{{e}}^\prime \left( \left[ \mathbf{Q} \right]_{\mathbf{{e}}^\prime}
+\left[\mathbf{C}\right]_\mathbf{e} \right)
 =
-\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+\mathbf{{e}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{e^\prime}
 \label{eq:base}
 $$
-This means that, when the vectors in different bases are expressed by $(\ref{eq:vectorBasis})$, the coordinates in the basis $\hat{b}^\prime$ can be obtained from the components in the basis $\hat{b}$ by this simple transformation:
+This means that, when the vectors in different bases are expressed by $(\ref{eq:vectorBasis})$, the coordinates in the basis $\mathbf{e}^\prime$ can be obtained from the components in the basis $\mathbf{e}$ by this simple transformation:
 $$
-\left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} \equiv \left[ \mathbf{Q} \right]_{\mathbf{\hat{b}}^\prime}
-\left[\mathbf{C}\right]_\mathbf{b}
+\left[\mathbf{C^\prime}\right]_\mathbf{e^\prime} \equiv \left[ \mathbf{Q} \right]_{\mathbf{\hat{e}}^\prime}
+\left[\mathbf{C}\right]_\mathbf{e}
 $$
 
 ## PCA base change in `sklearn`
 
-Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis.  We will see later that Principal Component Analysis (PCA) often *translates* the sample vectors (i.e. the intensity spectra) to the "origin" by subtracting the mean spectrum from all spectra. This means that we have a more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{I}}$:
+Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis. The goal of Principal Component Analysis (PCA) is to obtain an orthogonal basis for a much smaller subspace than the original (it is a dimensionality reduction technique). We will identify this **orthonormal** PCA base as $\left\{ \mathbf{\hat{p}} \right\}$ known as the principal component basis, or just the principal components. We will see later that PCA often *translates* the sample vectors (i.e. the intensity spectra) to the "origin" by subtracting the mean spectrum from all spectra. This means that we have a `more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{I}}$:
 $$
-\mathbf{I}-\mathbf{\bar{I}}= \mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime},
+\mathbf{I}-\mathbf{\bar{I}}= \mathbf{\hat{p}} \left[\mathbf{C}\right]_\mathbf{\hat{p}},
 \label{eq:vectorBasis2}
 $$
 with 
@@ -167,47 +180,62 @@ This average is computed in the "intensity" basis (or original basis $\left\{\ma
 $$
 \mathbf{I} 
 = 
-\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} + \mathbf{\bar{I}}
+\mathbf{\hat{p}} \left[\mathbf{C}\right]_\mathbf{\hat{p}} + \mathbf{\bar{I}}
 =
-\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
+\mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e},
 $$
-and if we try to follow the same development as in $(\ref{eq:base})$, we would quickly get stuck because we do not have $\mathbf{\bar{I}}$ neither in $\left\{\mathbf{b}\right\}$ or $\left\{\mathbf{b}^\prime\right\}$ coordinates, we have it in the $\left\{\mathbf{\hat{\nu}}\right\}$ coordinates :
+and if we try to follow the same development as in $(\ref{eq:base})$, we would quickly get stuck because we do not have $\mathbf{\bar{I}}$ neither in $\left\{\mathbf{e}\right\}$ or $\left\{\mathbf{\hat{p}}\right\}$ coordinates, we have it in the $\left\{\mathbf{\hat{\nu}}\right\}$ coordinates :
 $$
 \mathbf{I} 
 = 
-\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} + \hat{\nu} \left[ \mathbf{\bar{I}} \right]_\nu
+\mathbf{\hat{p}} \left[\mathbf{C}\right]_\mathbf{\hat{p}} + \hat{\nu} \left[ \mathbf{\bar{I}} \right]_\nu
 =
-\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
+\mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e},
 \label{eq:translated}
 $$
 Yet, this is the situation we will encounter later:
 
 1. $\mathbf{I} $ is the many spectra we have acquired in the lab.  They are in  $\left\{\mathbf{\hat{\nu}}\right\}$ basis (i.e. simple intensity spectra).
 2. We can compute $\mathbf{\bar{I}}$ with $(\ref{eq:average})$, also in the spectral component basis $\left\{\mathbf{\hat{\nu}}\right\}$.
-3. The $\left\{\mathbf{b}^\prime\right\}$ basis is the Principal Component Analysis (PCA) basis that will be obtained from the module together with the coefficients $\left[\mathbf{C}^\prime\right]_\mathbf{b^\prime}$.  It comes from a singular value decomposition, and at this point, we do not worry oursleves with how it is obtained: we know we can obtain $\left\{\mathbf{b}^\prime\right\}$ and $\left[\mathbf{C}^\prime\right]_\mathbf{b^\prime}$ from `sklearn` and PCA.
-4. Finally, the $\left\{\mathbf{b}\right\}$ basis is the "solution" basis for which we would like to get the concentrations $\left[\mathbf{C}\right]_\mathbf{b}$ for our lab measurements. We know *some* $\left\{\mathbf{b}_i\right\}$, but we may not know them all. In Raman, this could be the lipid spectrum, DNA spectrum, protein spectrum etc... We want the coefficients to try to determine the concentrations of these molecules and get insight (or answers) from our experimental spectra, but we may not have all the components (i.e. we may not have the full basis).
+3. The $\left\{\mathbf{p}_i\right\}$ basis is the Principal Component Analysis (PCA) basis that will be obtained from the module together with the coefficients $\left[\mathbf{C}\right]_\mathbf{\hat{p}}$.  It comes from a singular value decomposition, and at this point, we do not worry oursleves with how it is obtained: we know we can obtain $\left\{\mathbf{\hat{p}}\right\}$ and $\left[\mathbf{C}\right]_\mathbf{\hat{p}}$ from `sklearn` and PCA.
+4. Finally, the $\left\{\mathbf{e}_i\right\}$ basis is the "solution" basis (or the *physically meaningful* basis)  for which we would like to get the concentrations $\left[\mathbf{C}\right]_\mathbf{e}$ for our lab measurements. We know *some* $\left\{\mathbf{e}_i\right\}$, but we may not know them all. In Raman, this could be the lipid spectrum, DNA spectrum, protein spectrum etc... We want the coefficients to try to determine the concentrations of these molecules and get insight (or answers) from our experimental spectra, but we may not have all the components (i.e. we may not have the full basis).
 
 There is mathematically not much we can do with these three coordinate systems in $(\ref{eq:translated})$, unless we express the average spectrum $\mathbf{\bar{I}}$ in one or the other bases.  We can do two things:
 
-1. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}$
-2. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}^\prime$
+1. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{e}\right\}$
+2. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{\hat{p}}\right\}$
 
-For reasons that should become clear later, the `sklearn` PCA python module that we will use performs the multiplication $\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}$ to express the result in $\left\{\mathbf{\hat{\nu}}\right\}$ space *before* adding the mean, therefore we will choose to express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{b}\right\}$ :
+For reasons that should become clear later, we will choose to express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{\hat{p}}\right\}$ because, in fact, we do not know $\left\{\mathbf{e}\right\}$ completely, we only know *part* of it.  If we knew $\mathbf{{\hat{p}}} \left[ \mathbf{\bar{I}} \right]_\mathbf{\hat{p}}$, we could write:
 $$
-\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime} + \mathbf{\hat{b}} \left[ \mathbf{\bar{I}} \right]_\mathbf{b}
+\mathbf{\hat{p}} \left[\mathbf{C}\right]_\mathbf{\hat{p}} + \mathbf{\hat{p}} \left[ \mathbf{\bar{I}} \right]_\mathbf{\hat{p}}
 =
-\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b},
-$$
-
-$$
-\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
-=
-\mathbf{\hat{b}} \left[\mathbf{C}\right]_\mathbf{b}-\mathbf{\hat{b}} \left[ \mathbf{\bar{I}} \right]_\mathbf{b},
+\mathbf{e} \left[\mathbf{C}\right]_\mathbf{e},
 $$
 
 $$
-\mathbf{\hat{b}^\prime} \left[\mathbf{C^\prime}\right]_\mathbf{b^\prime}
+\mathbf{\hat{p}} \left( \left[\mathbf{C}\right]_\mathbf{\hat{p}} + \left[ \mathbf{\bar{I}} \right]_\mathbf{\hat{p}} \right)
 =
-\mathbf{\hat{b}} \left( \left[\mathbf{C}\right]_\mathbf{b}- \left[ \mathbf{\bar{I}} \right]_\mathbf{b} \right),
+\mathbf{e} \left[\mathbf{C}\right]_\mathbf{e},
+$$
+
+If we define for clarity:
+$$
+\left[\mathbf{C_+} \right]_\mathbf{\hat{p}} \equiv \left[\mathbf{C} \right]_\mathbf{\hat{p}} +  \left[ \mathbf{\bar{I}} \right]_\mathbf{\hat{p}},
+$$
+we can write:
+$$
+\mathbf{\hat{p}} \left[\mathbf{C_+} \right]_\mathbf{\hat{p}}
+=
+\mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e},
+$$
+We obtain it by transforming the null spectrum $\mathbf{0}$ in equation :
+$$
+\mathbf{0} 
+= 
+\mathbf{\hat{p}} \left[\mathbf{C_0}\right]_\mathbf{\hat{p}} +  \mathbf{\bar{I}}
+$$
+
+$$
+\mathbf{\bar{I}} = -\mathbf{\hat{p}} \left[\mathbf{C_0}\right]_\mathbf{\hat{p}} = \mathbf{\hat{p}} \left( - \left[\mathbf{C_0}\right]_\mathbf{\hat{p}}\right) \equiv \mathbf{\hat{p}} \left[ \mathbf{\bar{I}} \right]_\mathbf{\hat{p}}
 $$
 
