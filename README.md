@@ -72,7 +72,7 @@ Note that the vector itself $\mathbf{I}$ is different from the *components of th
 
 A reminder for the definition of a base $\left\{ \mathbf{e}_i \right\}$:
 
-1. A base set is **complete**: it spans the space for which it is a base: you must be able to get every vector in that space with $\sum c_i \mathbf{e}_i$. We call the $c_i$ the components of a vector *in that base*.
+1. A base set is **complete**: it spans the space for which it is a base: you must be able to get every vector in that space with $\mathbf{v} = \sum c_i \mathbf{e}_i$. We call the $c_i$ the components of a vector *in that base*.
 2. A base set is **linearly independent**: all base vectors are independent, and the only way to combine the base vectors to obtain the null vector $\sum c_i \mathbf{e}_i = \mathbf{0}$ is with $c_i =0$ for all $c_i$. 
 3. The number of base vectors in the set is the dimension of the space.
 
@@ -160,9 +160,37 @@ $$
 \left[\mathbf{C}\right]_\mathbf{e}
 $$
 
+
+
+## Principal Component Analysis (PCA) in `sklearn`
+
+ The goal of Principal Component Analysis (PCA) is to obtain an orthogonal basis for a much smaller subspace than the original (it is a *dimensionality reduction* technique). We will identify this **orthonormal** PCA base as $\left\{ \mathbf{\hat{p}} \right\}$, known as the principal component basis, or just the principal components. 
+
+At this point, it is farily simple to describe the process without worrying about the details: PCA takes a large number of samples spectra, and will:
+
+1. Find the *principal components*, or an orthonormal basis $\left\{ \mathbf{\hat{p}} \right\}$ that explains the variance of the data the best with a value that expresses how important they are.
+2. Given a spectrum $\mathbf{I}$, it can return (*fit*) it to the PCA components and give the coefficients $\left[ \mathbf{I} \right]_\mathbf{\hat{p}}$ in the PCA basis $\left\{ \mathbf{\hat{p}} \right\}$, with $\mathbf{I}=\mathbf{\hat{p}} \left[ \mathbf{I} \right]_\mathbf{\hat{p}}$.
+
+So, because the present document is about the matheatical formalism first and foremost and that I do not want to dive so much into the Python details, let us just say that the following code will give us the principal components, and all the coefficients for our spectra in that base:
+
+```python
+from sklearn.decomposition import PCA
+#[...]
+pca = PCA(n_components=componentsToKeep)
+pca.fit(dataSet)                             # find the principal components
+# The principal components are available in the variable pca.components_
+# They form an orthonormal basis set
+pcaDataCoefficients = pca.transform(dataSet) # express our spectra in the PCA basis
+# pcaDataCoefficients are the coefficients for each spectrum in the PCA basis
+# Note: it is (c1*PC1+c2*PC2+....) + meanSpectrum = Spectrum
+# as in equation (15) below.
+```
+
+
+
 ## PCA base change in `sklearn`
 
-Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis. The goal of Principal Component Analysis (PCA) is to obtain an orthogonal basis for a much smaller subspace than the original (it is a dimensionality reduction technique). We will identify this **orthonormal** PCA base as $\left\{ \mathbf{\hat{p}} \right\}$ known as the principal component basis, or just the principal components. We will see later that PCA often *translates* the sample vectors (i.e. the intensity spectra) to the "origin" by subtracting the mean spectrum from all spectra. This means that we have a `more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{I}}$:
+Equation $(\ref{eq:vectorBasis})$ is not the only possibility to express a vector in different basis. We will see later that PCA often *translates* the sample vectors (i.e. the intensity spectra) to the "origin" by subtracting the mean spectrum from all spectra. This means that we have a more general transformation than $(\ref{eq:vectorBasis})$ in that we do not express $\mathbf{I}$ in a different set of coordinates but rather $\mathbf{I} - \bar{\mathbf{I}}$:
 $$
 \mathbf{I}-\mathbf{\bar{I}}= \mathbf{\hat{p}} \left[\mathbf{C}\right]_\mathbf{\hat{p}},
 \label{eq:vectorBasis2}
@@ -195,15 +223,15 @@ $$
 $$
 Yet, this is the situation we will encounter later:
 
-1. $\mathbf{I} $ is the many spectra we have acquired in the lab.  They are in  $\left\{\mathbf{\hat{\nu}}\right\}$ basis (i.e. simple intensity spectra).
+1. $\mathbf{I} $ is the many spectra we have acquired in the lab.  They are in $\left\{\mathbf{\hat{\nu}}\right\}$ basis (i.e. simple intensity spectra).
 2. We can compute $\mathbf{\bar{I}}$ with $(\ref{eq:average})$, also in the spectral component basis $\left\{\mathbf{\hat{\nu}}\right\}$.
 3. The $\left\{\mathbf{p}_i\right\}$ basis is the Principal Component Analysis (PCA) basis that will be obtained from the module together with the coefficients $\left[\mathbf{C}\right]_\mathbf{\hat{p}}$.  It comes from a singular value decomposition, and at this point, we do not worry oursleves with how it is obtained: we know we can obtain $\left\{\mathbf{\hat{p}}\right\}$ and $\left[\mathbf{C}\right]_\mathbf{\hat{p}}$ from `sklearn` and PCA.
-4. Finally, the $\left\{\mathbf{e}_i\right\}$ basis is the "solution" basis (or the *physically meaningful* basis)  for which we would like to get the concentrations $\left[\mathbf{C}\right]_\mathbf{e}$ for our lab measurements. We know *some* $\left\{\mathbf{e}_i\right\}$, but we may not know them all. In Raman, this could be the lipid spectrum, DNA spectrum, protein spectrum etc... We want the coefficients to try to determine the concentrations of these molecules and get insight (or answers) from our experimental spectra, but we may not have all the components (i.e. we may not have the full basis).
+4. Finally, the $\left\{\mathbf{e}_i\right\}$ basis will be our "solution" basis (or the *physically meaningful* basis)  for which we would like to get the concentrations $\left[\mathbf{C}\right]_\mathbf{e}$ for our lab measurements. In Raman, this could be the lipid spectrum, DNA spectrum, protein spectrum etc...  We know *some* $\left\{\mathbf{e}_i\right\}$ (from insight), but we certainly do not know them all. We want the coefficients to try to determine the concentrations of these molecules and get insight (or answers) from our experimental spectra, but we may not have all the components (i.e. we may not have the full basis set).
 
 There is mathematically not much we can do with these three coordinate systems in $(\ref{eq:translated})$, unless we express the average spectrum $\mathbf{\bar{I}}$ in one or the other bases.  We can do two things:
 
 1. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{e}\right\}$
-2. Express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{\hat{p}}\right\}$
+2. Express $\mathbf{\bar{I}}$ in the PCA base $\left\{\mathbf{\hat{p}}\right\}$
 
 For reasons that should become clear later, we will choose to express $\mathbf{\bar{I}}$ in the base $\left\{\mathbf{\hat{p}}\right\}$ because, in fact, we do not know $\left\{\mathbf{e}\right\}$ completely, we only know *part* of it.  If we knew $\mathbf{{\hat{p}}} \left[ \mathbf{\bar{I}} \right]_\mathbf{\hat{p}}$, we could write:
 $$
@@ -226,7 +254,7 @@ we can write:
 $$
 \mathbf{\hat{p}} \left[\mathbf{C_+} \right]_\mathbf{\hat{p}}
 =
-\mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e},
+\mathbf{{e}} \left[\mathbf{C}\right]_\mathbf{e}.
 $$
 We obtain it by transforming the null spectrum $\mathbf{0}$ in equation :
 $$
