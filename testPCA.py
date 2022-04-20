@@ -730,6 +730,11 @@ class TestPCA(unittest.TestCase):
         # print(originCoeffs)
 
     def test33RecoverConcentrationWithBaseChange(self):
+        """
+        Finally, a successfuo strategy: I can recover the concentrations
+        by projecting my coefcients for a spectrum onto my original
+        spectra.
+        """
         basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
         self.assertIsNotNone(basisSet)
         self.assertIsNotNone(dataSet)
@@ -759,8 +764,7 @@ class TestPCA(unittest.TestCase):
         recoveredConcentrations = pcaBasisInv.T@sample0Coeff
         print("\nRecovered concentrations from PCA base change: ",recoveredConcentrations)
         print("Original concentrations: ",concentration[:,0])
-        print(recoveredConcentrations-concentration[:,0])
-        # self.assertAlmostEqual( (recoveredConcentrations-concentration[:,0]).all() , 1e-3)
+        self.assertAlmostEqual( recoveredConcentrations.all(), concentration[:,0].all(), 3)
 
 if __name__ == '__main__':
     unittest.main()

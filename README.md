@@ -6,11 +6,11 @@
 
 ## Preamble
 
-The goal of this at this point is to understand Principal Components Analysis (PCA) in scikit-learn.decomposition.
+The goal of this document is to understand Principal Components Analysis (PCA) in `scikit-learn.decomposition`.
 
-I have done this by writing a sequence of tests that helped me understand what was going on.
+I have done this by writing a sequence of tests that helped me understand what was going on. Take a look 
 
-This document is a work in progress and sections will improve with my understanding.
+This document is a work in progress and sections will improve as my understanding improves.
 
 
 
@@ -24,9 +24,9 @@ Spectroscopy is the optical method of choice to detect substances or identify ti
 
 <img src="README.assets/csm_fig_3_Raman_spectra_of_ethanol_and_methanol_dabf593771.png" alt="What is Raman Spectroscopy? - HORIBA" style="zoom:48%;" />
 
-It may even be possible to separate both substances if we have a mixture of the two, by fitting $c_e S_(\nu)_{e} + c_m S(\nu)_{m}$ to find the appropriate concentrations that can explain our final combined spectrum. However, what do we do if we have a mixture of several solutions? What if several peaks overlap? What if we don't know the original spectra? 
+It may even be possible to separate both substances if we have a mixture of the two, by fitting $c_e \mathbf{I}_(\nu)_{e} + c_m \mathbf{I}(\nu)_{m}$ to find the appropriate concentrations that can explain our final combined spectrum. However, what do we do if we have a mixture of several solutions? What if several peaks overlap? What if we don't know the original spectra that are being mixed? 
 
-We know intuitively that if peaks belong to the same molecule, they should vary together.  If by chance none of the peaks from the different analytes overlap, then it becomes trivial: we only need to identify the peaks, find their amplitudes, and we will quickly get the concentrations of the respective analytes. But things get complicated if they have overlapping peaks, and even worse if we have more than a few components.  
+We know intuitively that if peaks belong to the same molecule, they should vary together.  If by chance none of the peaks from the different analytes overlap, then it becomes trivial: we only need to identify the peaks, find their amplitudes, and we will quickly get the concentrations of the respective analytes. But things get complicated if they have overlapping peaks, and even worse if we have more than a few components.  We will discuss how we can use the very general nomenclature of a generalized vector space with Principal Components Analysis to extract this information. 
 
 ## Spectra as vectors
 
@@ -37,7 +37,7 @@ $$
 $$
 where each individual frequency $\nu_i$ is in its own dimension, with $\hat{\nu}_i$ the base vectors and $I_i$ is the intensity at that frequency.  Therefore, if we have N=1024 points in our intensity spectrum $\mathbf{I}$, we are in an N-dimensional space, with the components being $(I_1,I_2,...I_N)$, and we should assume (at least for now) that these components are all independent. If we define the **norm** of a vector from the **dot product**, we can say that the norm is equal to:
 $$
-\left|\mathbf{I} \right|^2 = \sum_{i=1}^{n} I_i\mathbf{\hat{\nu}}_i \cdot \sum_{j=1}^{n} I_j\mathbf{\hat{\nu}}_j = \sum_{i=1}^{n}\sum_{j=1}^{n} I_i I_j\ \hat{\nu}_i \cdot \hat{\nu}_j = \sum_{i=1}^{n} \left|I_i\right|^2,
+\left|\mathbf{I} \right| = \sqrt{\sum_{i=1}^{n} I_i\mathbf{\hat{\nu}}_i \cdot \sum_{j=1}^{n} I_j\mathbf{\hat{\nu}}_j} = \sqrt{\sum_{i=1}^{n}\sum_{j=1}^{n} I_i I_j\ \hat{\nu}_i \cdot \hat{\nu}_j} = \sqrt{\sum_{i=1}^{n} \left|I_i\right|^2},
 $$
 since the spectral base vectors $\hat{\nu}_i$ are all orthonormal, which we can use to normalize a spectrum (or a vector). Finally, it is very convenient to work with matrix notation to express many of these things.  We can express the spectrum $\mathbf{I}$ in the basis $\left\{ \hat{\nu}_i \right\}$ with:
 $$
@@ -54,15 +54,15 @@ I_2 \\
 ... \\
 I_n \\
 \end{matrix}
-\right)
+\right).
 $$
-If we consider these matrices as partitions, we can write in a form even more compact as:
+Note that the vector itself $\mathbf{I}$ is different from the *components of that vector in a given basis* $[I]_\nu$: the position *vector* $\mathbf{r}$ is different from its *components* $(x,y,z)$ in Cartesian coordinates.  If we consider these matrices as partitions, we can write in a form even more compact as:
 $$
 \mathbf{I} = \hat{\nu} [I]_\nu
 $$
 where the notation $\left[ I\right]_\nu$ means "the intensity coefficients in base $\nu$  to multiply the base vectors $\hat{\nu}$ and obtain the vector (spectrum)". We will use the transpose notation to keep expressions on a single line when needed.
 
-Note that the vector itself $\mathbf{I}$ is different from the *components of that vector in a given basis* $[I]_\nu$.  For more information about the notation for vector, base vectors and coefficients:
+For more information about the notation for vector, base vectors and coefficients:
 
 * Read [Greenberg Section 10.7](./Greenberg base change.pdf) on bases and base changes.
 * Watch [the video](https://www.youtube.com/watch?v=FNuKax5NEpw&list=PLUxTghemi4FvGibCevLK8S89Q7d_eC9HX&index=33) (in French) that explains in even more details where this comes from.
@@ -70,11 +70,11 @@ Note that the vector itself $\mathbf{I}$ is different from the *components of th
 
 ## Bases
 
-A reminder for the definition of a base $\left\{ \mathbf{e}_i \right\}$:
+This document will always discuss things in terms of bases, base change: a vector can be expressed in an infinite number of bases.  A reminder for the definition of a base $\left\{ \mathbf{e}_i \right\}$:
 
 1. A base set is **complete**: it spans the space for which it is a base: you must be able to get every vector in that space with $\mathbf{v} = \sum c_i \mathbf{e}_i$. We call the $c_i$ the components of a vector *in that base*.
-2. A base set is **linearly independent**: all base vectors are independent, and the only way to combine the base vectors to obtain the null vector $\sum c_i \mathbf{e}_i = \mathbf{0}$ is with $c_i =0$ for all $c_i$. 
-3. The number of base vectors in the set is the dimension of the space.
+2. A base set is **linearly independent**: all base vectors are independent, and the only way to combine the base vectors to obtain the null vector $\sum c_i \mathbf{e}_i = \mathbf{0}$ is with $c_i =0$ for all $c_i$. Another way of saying this is "you cannot combine two vectors from the base set to obtain a third one from the base set".
+3. The number of base vectors in the set is the **dimension** of the space.
 
 Notice that :
 
@@ -83,15 +83,19 @@ Notice that :
 
 ## Spectra as *dependent* vectors
 
-However, we know from experience that in a spectrum, intensities are not completely independent: for instance, in the methanol spectrum above, the peak around 1000 cm$^{-1}$ has a certain width and therefore those intensities are related and are not independent. In fact, for the spectrum of a single substance, *all intensities* are related because they will come from a scaled version of the original spectrum. Therefore, if we have the reference methanol spectrum for a unity concentration $\mathbf{\hat{s}}_M$:
+We know from experience that in a spectrum, intensities are not completely independent: for instance, in the methanol spectrum above, the peak around 1000 cm$^{-1}$ has a certain width and therefore those intensities are related and are not independent. In fact, for the spectrum of a single substance, *all intensities* are related because they will come from a scaled version of the original spectrum. Therefore, if we have the a methanol spectrum :
 $$
-\mathbf{\hat{s}}_M = \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i,
+\mathbf{I}_M = \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i,
 $$
-where $I_{M,i}$ is the relative intensity at frequency $\nu_i$. Any other solution of methanol of scalar concentration $c_M$ would simply yield the spectrum:
+where $I_{M,i}$ is the intensity at frequency $\nu_i$. We can normalize this spectrum and obtain a "reference spectrum" or a "base spectrum" $\mathbf{\hat{s}}_M$ for a unity concentration :
 $$
-\mathbf{I} = c_M\mathbf{\hat{s}}_M = c_M \sum_{i=0}^{n} I_{M,i}\mathbf{\hat{\nu}}_i.
+\mathbf{\hat{s}}_M = \frac{\mathbf{I}_M}{\left|I_M\right|}.
 $$
-So if we have several individual solutions $\left\{\mathbf{\hat{s}}_j\right\}$ from which we create a mixture of concentrations $c_j$, we will generate spectra in a sub-space of the original $n$-dimensional intensity vector-space. The set of vectors $\left\{\mathbf{\hat{s}}_j\right\}$ is a basis set because we can generate all vectors in that sub-space with a linear combination of the vectors (or spectra). The dimension of that subspace is equal to the number of elements in $\left\{\mathbf{\hat{s}}_j\right\}$ We can write the mixture spectrum $\mathbf{I}$ as:
+ Any other solution of methanol of scalar concentration $c_M$ would simply yield the spectrum:
+$$
+\mathbf{I} = c_M\mathbf{\hat{s}}_M = c_M \frac{\mathbf{I}_M}{\left|I_M\right|} .
+$$
+So if we have several individual solutions with their spectra $\left\{\mathbf{\hat{s}}_j\right\}$ from which we create a mixture of concentrations $c_j$, we will generate spectra in a sub-space of the original $n$-dimensional intensity vector-space. The set of vectors $\left\{\mathbf{\hat{s}}_j\right\}$ is a basis set because we can generate all vectors in that sub-space with a linear combination of the base vectors (or base spectra). The dimension of that subspace is equal to the number of elements in $\left\{\mathbf{\hat{s}}_j\right\}$ We can write the mixture spectrum $\mathbf{I}$ as:
 $$
 \mathbf{I} = \sum_j c_j\mathbf{\hat{s}}_j = \left( \mathbf{\hat{s}}_1, \mathbf{\hat{s}}_2,...,\mathbf{\hat{s}}_n \right)  \left( c_1, c_2,...,c_n \right)^T = \mathbf{\hat{s}}  [ c ]_\mathbf{\hat{s}}
 $$
@@ -121,11 +125,11 @@ $$
 \mathbf{I} = \mathbf{\hat{s}} \left[\mathbf{C}\right]_\mathbf{\hat{s}}
 $$
 
-This equation represents, in a single expression, the $m$ spectra obtained by mixing the $n$ solutions with concentrations $c_{ij}$ for the $i$-th spectrum and the $j$-th solution. 
+with $\mathbf{I}\equiv\left( \mathbf{I}_1, \mathbf{I}_2,...,\mathbf{I}_m \right)$, $\mathbf{\hat{s}} \equiv \left( \mathbf{\hat{s}}_1, \mathbf{\hat{s}}_2,...,\mathbf{\hat{s}}_n \right)$, and $\left[\mathbf{C}\right]_\mathbf{\hat{s}}$ is the large matrix of coefficients. This equation represents, in a single expression, the $m$ spectra obtained by mixing the $n$ solutions with concentrations $c_{ij}$ for the $i$-th spectrum and the $j$-th solution. 
 
 ## Final notes on intensity spectra as vectors
 
-If we have several components (i.e. methanol, ethanol, etc...) and there is no overlap whatsoever between the spectra (i.e the peaks are all distinct), then the base vectors $\hat{b}_i$ and $\hat{b}_j$ are orthogonal. However, it is more likely that the solutions *do* have overlapping spectra, therefore the base vectors (and consequently the base itself) will *not be orthogonal*. It is perfectly acceptable to have a base that is not orthogonal: it remains a base because any linear combination can create any spectrum we would measure.
+If we have several components (i.e. methanol, ethanol, etc...) and there is no overlap whatsoever between the spectra (i.e the peaks are all distinct), then the base vectors $\mathbf{\hat{s}}_i$ and $\mathbf{\hat{s}}_j$ are **orthogonal**: their dot product is zero. However, it is more likely that the solutions *do* have overlapping spectra, therefore the base vectors (and consequently the base itself) will *not be orthogonal*. It is perfectly acceptable to have a base that is not orthogonal: it remains a base because any linear combination can create any spectrum we would measure.
 
 ## Base change
 
@@ -183,7 +187,7 @@ pca.fit(dataSet)                             # find the principal components
 pcaDataCoefficients = pca.transform(dataSet) # express our spectra in the PCA basis
 # pcaDataCoefficients are the coefficients for each spectrum in the PCA basis
 # Note: it is (c1*PC1+c2*PC2+....) + meanSpectrum = Spectrum
-# as in equation (15) below.
+# as in equation (16) below.
 ```
 
 
