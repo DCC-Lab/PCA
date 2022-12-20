@@ -12,6 +12,8 @@ I have done this by writing a sequence of tests that helped me understand what w
 
 This document is a work in progress and sections will improve as my understanding improves.
 
+I worked on a presentaation of Dirac Notation that I will eventually use for this document, it is available here: https://www.icloud.com/keynote/0a7T8YWw1ZTV5_LU2YuABNHOQ#Notation_de_Dirac
+
 
 
 ## Note
