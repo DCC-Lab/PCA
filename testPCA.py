@@ -792,7 +792,7 @@ class TestPCA(unittest.TestCase):
 
         # Look at non-centered components
         plt.plot(pca.components_noncentered_.T)
-        plt.set_title("Principal components (non-centered)")
+        plt.title("Principal components (non-centered)")
         plt.show()
 
         # To avoid confusion, indices (i,b,j,k,p) represent:
