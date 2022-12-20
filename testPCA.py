@@ -784,27 +784,37 @@ class TestPCA(unittest.TestCase):
 
         basisSet_bj = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
         dataSet_ij, concentration_ik = self.createDatasetFromBasisSet(100, basisSet_bj)        
+        # dataSet_ij is now a simulated dataset of 100 spectra coming from 5 analytes mixed in various concentrations
+        # basisSet_bj is their individual spectra
 
         pca = LabPCA(n_components=5)
         pca.fit(dataSet_ij)
+
+        # Look at non-centered components
         plt.plot(pca.components_noncentered_.T)
+        plt.set_title("Principal components (non-centered)")
         plt.show()
 
-        # i = sample
-        # b = basis
-        # j = feature
-        # k = concentration
-        # p = principal coefficient
+        # To avoid confusion, indices (i,b,j,k,p) represent:
+        # i = sample #
+        # b = basis #
+        # j = feature #
+        # k = concentration #
+        # p = principal coefficient #
         b_bp = pca.transform_noncentered(basisSet_bj)
         s_ip = pca.transform_noncentered(dataSet_ij)
         s_pi = s_ip.T
         invb_pb = np.linalg.pinv(b_bp)
         invb_bp = invb_pb.T
 
-        print("Expected:", concentration_ik.T)
-        print("Recovered:", (invb_bp@s_pi).T)
+        recoveredConcentrations_ki = (invb_bp@s_pi).T
+        expectedConcentrations_ki = concentration_ik.T
+        print("Expected concentrations (first four only):\n", expectedConcentrations_ki[0:3])
+        print("Recovered concentrations (first four only):\n", recoveredConcentrations_ki[0:3])
 
+        everythingBelowThreshold = ((expectedConcentrations_ki-recoveredConcentrations_ki) ).all() < 1e-7
+        self.assertTrue(everythingBelowThreshold )
+        print("Minimal differences: ", everythingBelowThreshold)
 
-            
 if __name__ == '__main__':
     unittest.main()
