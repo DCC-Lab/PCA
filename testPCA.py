@@ -7,6 +7,15 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+class LabPCA(PCA):
+    def transform_noncentered(self, X):
+        originCoefficients = np.zeros(shape=X.shape)
+        return self.transform(X)-self.transform(originCoefficients)
+
+    @property
+    def components_noncentered_(self):
+        return self.components_ + self.mean_
+
 
 # I will use these later, it is easier if I put them here:
 A1 = 1.0 # amplitude of peak1
@@ -222,10 +231,11 @@ class TestPCA(unittest.TestCase):
 
         return np.array(basisSet)
 
-    def test12CreateBaseComponents(self, ):
+    def test12CreateBaseComponents(self):
         # Is the function I just wrote working?
         basisSet = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
         self.assertTrue(basisSet.shape == (5, len(self.X)))
+
 
     def createDatasetFromBasisSet(self, N, basisSet):
         # Alright, I have a basis set but now I want a data set
@@ -736,12 +746,14 @@ class TestPCA(unittest.TestCase):
         spectra.
         """
         basisSet, dataSet, concentration = self.createNormalizedNoisyDataset(noiseFraction=0.0)
-        self.assertIsNotNone(basisSet)
-        self.assertIsNotNone(dataSet)
-        meanConcentration = np.mean(concentration,axis=1)
-        meanConcentrationMatrix = np.array([meanConcentration]*100)
-        meanDataSet = basisSet.T@meanConcentrationMatrix.T
-        centeredDataSet = dataSet - meanDataSet.T
+        # self.assertIsNotNone(basisSet)
+        # self.assertIsNotNone(dataSet)
+        # meanConcentration = np.mean(concentration,axis=1)
+        # meanConcentrationMatrix = np.array([meanConcentration]*100)
+        # meanDataSet = basisSet.T@meanConcentrationMatrix.T
+        # self.assertAlmostEqual( meanDataSet.all(), np.mean(dataSet).all(), 3)
+        # centeredDataSet = dataSet - np.mean(dataSet)
+        
 
         componentsToKeep = 5
         pca = PCA(n_components=componentsToKeep)
@@ -762,9 +774,37 @@ class TestPCA(unittest.TestCase):
         self.assertTrue(sample0Coeff.shape==(5,))
 
         recoveredConcentrations = pcaBasisInv.T@sample0Coeff
-        print("\nRecovered concentrations from PCA base change: ",recov eredConcentrations)
+        print("\nRecovered concentrations from PCA base change: ",recoveredConcentrations)
         print("Original concentrations: ",concentration[:,0])
         self.assertAlmostEqual( recoveredConcentrations.all(), concentration[:,0].all(), 3)
 
+
+    def test40WithSubclassExampleGraphsAndData(self):
+        # Final example with the subclass for cleaner code
+
+        basisSet_bj = self.createBasisSet(self.X, N=5, maxPeaks=5, maxAmplitude=1, maxWidth=30, minWidth=5)
+        dataSet_ij, concentration_ik = self.createDatasetFromBasisSet(100, basisSet_bj)        
+
+        pca = LabPCA(n_components=5)
+        pca.fit(dataSet_ij)
+        plt.plot(pca.components_noncentered_.T)
+        plt.show()
+
+        # i = sample
+        # b = basis
+        # j = feature
+        # k = concentration
+        # p = principal coefficient
+        b_bp = pca.transform_noncentered(basisSet_bj)
+        s_ip = pca.transform_noncentered(dataSet_ij)
+        s_pi = s_ip.T
+        invb_pb = np.linalg.pinv(b_bp)
+        invb_bp = invb_pb.T
+
+        print("Expected:", concentration_ik.T)
+        print("Recovered:", (invb_bp@s_pi).T)
+
+
+            
 if __name__ == '__main__':
     unittest.main()
